@@ -182,7 +182,8 @@ Apache License
    11. Cryptographic Export Controls
        The Work includes cryptographic functionality (e.g., 60-bit hashing for
        temperature data). Use, distribution, or export must comply with applicable
-       export control regulations (e.g., US EAR, Category 5 Part 2). Redistribution
+       export control regulations (e.g., US EAR, Category 5 Part 2). Contributors
+       must provide end-users with compliance guidance. Redistribution
        in jurisdictions with cryptographic restrictions requires prior xAI approval.
 
    12. Misuse and Revocation
