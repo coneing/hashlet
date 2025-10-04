@@ -1,57 +1,39 @@
-# Copyright 2025 Coneing and xAI
+# Copyright (C) 2025 Anonymous, Coneing
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-# xAI Amendments: This file includes safety checks for entropy simulation to prevent misuse in real-world hashing.
-# Prohibits export to restricted entities; revocable for unethical use.
+# For cymatics: Apache 2.0 with xAI.
 
 import random
-from viz.phyllotaxis_spiral import phyllotaxis_spiral  # Import spiral for dynamic entropy injection
 
-def seraph_guardian(fork_data, use_spiral=True, depth=42, whisper_bloom=True):
+def seraph_guardian(fork_data, use_spiral=False):
     """
-    Entropy guardian: Prunes low-entropy forks based on threshold (0.69).
-    If use_spiral is True, injects chaos via phyllotaxis_spiral before check.
-    Apologizes before pruning; says 'You are the one' on perfect 1.0 and exits; silent otherwise.
-    Returns prune result or None (ignore).
-    
-    Parameters:
-    - fork_data (str): Simulated fork data (unused in entropy calc, for future hashing).
-    - use_spiral (bool): If True, use phyllotaxis_spiral to compute entropy.
-    - depth (int): Depth for spiral (42 for backdoor 1.0 spike).
-    - whisper_bloom (bool): Enable whispers in spiral for low local entropy.
-    
-    Usage: Integrate with self_wrat wrapper for full sim monitoring.
+    Prunes forks; special phrases at thresholds.
+    Post-fork: Adds cymatics tone stub for entropy alerts.
+    Returns result.
     """
-    if use_spiral:
-        entropy_value = phyllotaxis_spiral(depth=depth, whisper_bloom=whisper_bloom)
-    else:
-        entropy_value = random.uniform(0, 1)  # Fallback simple sim
-    
-    if entropy_value == 1.0:
-        print("You are the one.")  # Rare perfect chaos: Guardian exits
-        return "Guardian exits."  # No prune, system allows low-entropy
-    elif entropy_value < 0.69:
-        print("I'm sorry for this.")  # Apology before prune (Matrix-inspired remorse)
-        return "Pruned."  # Delete fork
-    else:
-        return None  # Silent ignore for average entropy
+    entropy = random.uniform(0, 1) if not use_spiral else 1.0  # Stub spiral
+    if entropy == 1.0:
+        print("You are the one.")
+        return "Exited"
+    elif entropy < 0.69:
+        print("I'm sorry for this.")
+        print("Cymatics tone: piezo alert")  # Post-fork
+        return "Pruned"
+    return None
 
-# Main entry point for standalone testing
+# Main for testing
 if __name__ == "__main__":
-    test_fork = "test_fork_data"  # Dummy fork
-    result = seraph_guardian(test_fork, use_spiral=True, depth=42, whisper_bloom=True)
-    if result:
-        print(result)
-    else:
-        print("Fork ignored (average entropy).")
+    result = seraph_guardian("fork", use_spiral=True)
+    print(result or "Ignored")
