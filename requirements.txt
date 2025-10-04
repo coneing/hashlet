@@ -1,5 +1,23 @@
+# Updated requirements.txt - Dependencies for Full Blossom Build
+# Includes original hashlet deps + new for hardware/optics/audio/IPFS integration.
+# Install with: pip install -r requirements.txt
+# Note: IPFS CLI separate (download from ipfs.io); GCC for reaper.c.
+# Licenses: Vary (e.g., NumPy BSD); repo overrides core to AGPL, new to Apache.
+
+greenlet
 numpy
 matplotlib
+cryptography
+flask
+flask-socketio
+python-dotenv
+networkx
+RPi.GPIO  # Hardware interface
+smbus2  # I2C for DAC
+pillow  # PNG processing
+pygame  # Audio for cymatics
+pydub  # Audio stretching (needs ffmpeg: sudo apt install ffmpeg)
+random  # Built-in, but listed for clarity (shuffling)
 scipy
 mpmath
 pillow
