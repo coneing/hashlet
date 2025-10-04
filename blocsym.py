@@ -1,8 +1,8 @@
-# Blocsym.py - Updated with Key Moshing, Dojos, Calm/Dream Features
+# Updated Blocsym.py - Integrated Key Moshing, Dojos Tie-In
 # AGPL-3.0 licensed. -- OliviaLynnArchive fork, 2025
-# Integrates key moshing for trustless websocket queues, pruning, consensus.
-# Ties to greenpaper TOC: Dojos (40), Curve Grad (41), Forks (42), Recurv (44).
-# Calm: Meditation scenery on AFK. Dream: Generative randomness in moshing.
+# Main monoscript with key moshing for trustless queues, calm/dream features.
+# Ties to db_utils for cross-chain, entropy checks; calls dojo_train for hidden updates.
+# Fixed bytes literal for 'ÿ' using encode('utf-8').
 
 import os
 import sys
@@ -23,6 +23,9 @@ from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 import random  # For dream generative
 from math import sin  # For curve gradation
+
+# Import db_utils for dojo/cross-chain integration
+from db_utils import BlocsymDB, SCENERY_DESCS  # Reuse calm scenery
 
 # Blockchain libraries (placeholders, import as needed)
 # from bitcoinlib.wallets import Wallet
@@ -52,13 +55,7 @@ HASH_WINDOW_MAX = 145
 SIDE_HASHES = 42
 CONSENSUS_THRESHOLD = 0.69
 KAPPA_BASE = 0.3536
-
-# Calm Scenery for Meditation/AFK
-SCENERY_DESCS = [
-    "Blocsÿm meditates in chrysanthemum fractals, elephant recalling ancient hashes.",
-    "Rock dots pulse under starry dojos, y/ÿ keys shimmering in ternary mist.",
-    "Calm dream: Curve forks recurv bows, Smith blind till finality."
-]
+ROCK_DOTS = "ÿÿÿ".encode('utf-8')  # Fixed for bytes
 
 main_exit_flag = False
 
@@ -85,13 +82,14 @@ def execute_function_string(func_id: str, *args, **kwargs):
     logger.warning(f"No function found for ID: {func_id}")
     return None
 
-# Key Moshing Class
+# Key Mosher Class (updated with db/dojo tie)
 class KeyMosher:
-    def __init__(self, queue_size=1024):
+    def __init__(self, queue_size=1024, db_path='blocsym.db'):
         self.queue = deque(maxlen=queue_size)
         self.block_height = 0
         self.hash_height = 0
         self.prune_buffer = deque(maxlen=PRUNE_AFTER)
+        self.db = BlocsymDB(db_path)  # Tie to db for persistent states
         self.afk_timer = time.time()
         self.meditation_active = False
 
@@ -106,6 +104,9 @@ class KeyMosher:
         self.prune_buffer.append(moshed)
         self.update_heights()
         self.meditate_if_afk()
+        # Dojo train moshed for hidden update
+        trained = self.db.dojo_train(moshed)
+        logger.info(trained)
         return moshed
 
     def update_heights(self):
@@ -125,7 +126,7 @@ class KeyMosher:
             dream_hash = ''.join(random.choice('abcdef0123456789') for _ in range(8))
             self.prune_buffer.append(dream_hash)  # Dream insert
 
-    def check_consensus(self, nodes= NODES):
+    def check_consensus(self, nodes=NODES):
         """69% consensus check."""
         votes = random.randint(0, nodes)  # Sim
         return votes / nodes >= CONSENSUS_THRESHOLD
@@ -148,12 +149,8 @@ class KeyMosher:
         return self.recurvature(data + ' recurv', depth-1)
 
     def dojo_train(self, updates):
-        """Hidden dojo: Train privately, reveal post-consensus."""
-        # Sim hidden: Curve/grad/fork/recurv
-        trained = self.recurvature(self.thought_fork(self.curve_gradation(updates)))
-        if self.check_consensus():
-            return trained  # Reveal
-        return "Dojo hidden - Smith blind."  # Stay hidden
+        """Call db dojo for hidden training."""
+        return self.db.dojo_train(self.recurvature(self.thought_fork(self.curve_gradation(updates))))
 
     def meditate_if_afk(self):
         """Calm meditation if AFK >60s."""
@@ -164,7 +161,10 @@ class KeyMosher:
         elif time.time() - self.afk_timer < 60:
             self.meditation_active = False
 
-# BFS Chunking (existing, tie to moshing queues)
+    def close(self):
+        self.db.close()
+
+# BFS Chunking (tie to moshing)
 def chunk_file_into_bfs_nodes(file_path, chunk_size=1024):
     adjacency_dict = {}
     node_data = {}
@@ -185,13 +185,13 @@ def chunk_file_into_bfs_nodes(file_path, chunk_size=1024):
 @register_function('BFS')
 def handle_bfs_chunking_demo(file_path, chunk_size=256):
     adjacency_dict, node_data = chunk_file_into_bfs_nodes(file_path, chunk_size)
-    # Tie to mosh: Mosh node IDs
+    # Mosh node IDs
     mosher = KeyMosher()
     for node in node_data:
         mosher.mosh_key(node, hashlib.sha256(node_data[node]).hexdigest())
     return {"status": "BFS complete with moshing", "chunks": len(node_data)}
 
-# Ephemeral Bastion (existing, add dojo tie)
+# Ephemeral Bastion (add dojo tie)
 class EphemeralBastion:
     def __init__(self, ephemeral_key=None):
         if ephemeral_key is None:
@@ -233,7 +233,7 @@ def main_cli_loop():
             break
         time.sleep(2)  # Idle check
 
-# Flask App (existing)
+# Flask App
 app = Flask(__name__)
 socketio = SocketIO(app)
 
