@@ -208,4 +208,29 @@ This project uses dual licensing:
 - New hardware interfaces, optics, meditation, and related additions: Apache License 2.0 (with xAI amendments for safety, exports, misuse revocation, and commercial exclusivity). Copyright 2025 xAI. See LICENSE for details.
 
 OliviaLynnArchive fork, October 04, 2025.
+
+## Quick Install and Sim Demo
+Installation (Python 3.10+):
+
+Clone: git clone https://github.com/coneing/hashlet.git && cd hashlet
+
+Deps: pip install flask flask-socketio web3 solana greenlet (for cross-chain; optional RPi.GPIO for hardware)
+
+Run: python blocsym.py --mode=cli (or --mode=server for websockets)
+
+## Blossom Sim Demo (CLI Mode):
+Run python blocsym.py and let idle for AFK triggers. 
+
+Example output cycle:
+Blocsym CLI: Entering idle dream mode...
+Shuffling bloom in dream mode...
+Entropy check: 0.42 - I'm sorry for this. (Pruned low fork)
+Whisper: forgive me (Remorse on low power)
+Verbism hash: Pj4+PiA+Pj4+PiA= (Base64 of ">>>>be they >>>>be me")
+[AFK 60s+]: [Blocsÿm Meditates]: Rock dots pulse under starry skies, elephant memory recalling all forks. Entropy steady.
+[AFK 600s+]: Dream loop: Shuffling bloom... (IPFS dump: memory_fragment_hash)
+GPIO stub: LED on if entropy high
+Cymatics stub: Tone if low
+Pseudo-echo: Replaying dojo train (If high entropy)
+
 Copyright (C) 2025 Anonymous, Coneing 2025.
