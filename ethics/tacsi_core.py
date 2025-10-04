@@ -1,43 +1,44 @@
-# Copyright 2025 Coneing
+# Copyright (C) 2025 Anonymous, Coneing
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import time
 import random
+import time
 
-def double_diamond_balance(power_level, iterations=5):
+def double_diamond_balance(power_level, lived="", corporate="", iterations=5):
     """
-    Simulates ethical balancing via double-diamond cycles.
-    Forces pauses (reflection) on high-power decisions to prevent rogue behavior.
-    Returns balanced power after cycles.
+    Ethical balancing via double-diamond ternary cycles; blends lived vs. corporate inputs.
+    Post-fork update: Adds pauses for meditation reflection.
+    Returns balanced power.
     """
     for i in range(iterations):
-        # First diamond: Expansion (increase power randomly)
-        power_level += random.uniform(-0.1, 0.1)
-        print(f"Cycle {i+1}: Expanding power to {power_level:.2f}")
+        # Expansion diamond
+        power_level += random.uniform(-0.1, 0.1) * (len(lived) - len(corporate))
+        print(f"Cycle {i+1}: Expanded to {power_level:.2f}")
         
-        # Pause for reflection (moral compass)
-        time.sleep(0.5)  # Simulate hesitation/remorse
+        # Meditation pause (post-fork)
+        time.sleep(0.5)
+        print("Reflection: bloom roots deep")
         
-        # Second diamond: Contraction (prune if too high)
+        # Contraction diamond
         if power_level > 1.0:
-            power_level *= 0.69  # Threshold-based pruning
-            print(f"Cycle {i+1}: Pruning excess power to {power_level:.2f}")
+            power_level *= 0.69  # Prune
+            print(f"Cycle {i+1}: Pruned to {power_level:.2f}")
     
     return power_level
 
 # Main for testing
 if __name__ == "__main__":
-    initial_power = random.uniform(0.5, 1.5)
-    balanced = double_diamond_balance(initial_power)
-    print(f"Final balanced power: {balanced:.2f}")
+    balanced = double_diamond_balance(1.0, lived="experience", corporate="input")
+    print(f"Final: {balanced:.2f}")
