@@ -88,3 +88,5 @@ if __name__ == "__main__":
     trained = dojo.hidden_train("Test updates")
     print(f"Trained: {trained}")
     print(dojo.reveal_if_ready())
+    time.sleep(70)  # Sim AFK for meditation
+    dojo.meditate_if_afk()
