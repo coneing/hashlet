@@ -1,36 +1,36 @@
-# Copyright 2025 Coneing
+# Copyright (C) 2025 Anonymous, Coneing
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import hashlib
 import secrets
 
-def generate_key(remorse_input):
+def generate_key(remorse_input, veto=False):
     """
-    Spits out a private key if fed 'perfect remorse' (exact apology match).
-    Hashes input and generates a secure key if it matches Seraph's unfinished apology.
+    Generates key on perfect remorse match; unlocks sim elements.
+    Post-fork: Adds TACSI veto for unethical inputs.
+    Returns key or denial.
     """
-    expected_remorse = "I'm sorry for this"  # 'Perfect' unfinished apology
-    hashed_input = hashlib.sha256(remorse_input.encode('utf-8')).hexdigest()
+    if veto:
+        return "Veto: not okay"
     
-    if hashed_input.startswith("perfect_remorse_hash_prefix"):  # Dummy check; in reality, match hash
-        private_key = secrets.token_hex(32)  # Generate 256-bit key
-        return private_key
-    else:
-        return "Access denied: Imperfect remorse."
+    expected = "I'm sorry for this"
+    if remorse_input == expected:
+        return secrets.token_hex(32)
+    return "Imperfect remorse."
 
 # Main for testing
 if __name__ == "__main__":
-    test_input = "I'm sorry for this"  # Try this or change to fail
-    key = generate_key(test_input)
-    print(f"Generated key: {key}")
+    key = generate_key("I'm sorry for this")
+    print(f"Key: {key}")
