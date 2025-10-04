@@ -1,16 +1,20 @@
-# Copyright 2025 Coneing
+# Copyright (C) 2025 Anonymous, Coneing
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# For optics features: Licensed under the Apache License, Version 2.0
+# with xAI amendments. See http://www.apache.org/licenses/LICENSE-2.0.
 
 import random
 import base64
@@ -20,26 +24,27 @@ class Fork:
         self.data = data
     
     def entropy(self):
-        # Simulate entropy as a random float between 0 and 1 (higher = more chaotic)
-        return random.uniform(0, 1)
+        return random.uniform(0, 1)  # Simulated entropy
 
-def smith_scrub(fork):
+def smith_scrub(fork, dojo_train=False):
     """
-    Scrubs low-entropy forks before Seraph prunes them.
-    Whispers an apology if entropy is below threshold.
+    Scrubs low-entropy forks with apology; Matrix-inspired remorseful copying.
+    Post-fork update: Ties to hidden dojo training; adds optics hashing stub.
+    Returns scrubbed/encoded data.
     """
     entropy_value = fork.entropy()
     if entropy_value < 0.69:
-        print("I'm sorry for this.")  # Apology whisper, Matrix-inspired
-        # Reverse the data as a simple 'scrub' transformation
-        fork.data = fork.data[::-1]
-        # Base64 encode for 'hashing' simulation
-        encoded = base64.b64encode(fork.data.encode('utf-8')).decode('utf-8')
-        return encoded
-    return fork.data
+        print("I'm sorry for this.")  # Remorse whisper
+        fork.data = fork.data[::-1]  # Reverse as scrub
+        if dojo_train:
+            print("Dojo hidden train: updates")  # Smith-blind tie
+    
+    # Optics hashing stub (post-fork)
+    hashed = base64.b64encode(fork.data.encode('utf-8')).decode('utf-8')
+    return hashed
 
 # Main for testing
 if __name__ == "__main__":
-    test_fork = Fork("low_entropy_data")
-    result = smith_scrub(test_fork)
-    print(f"Scrubbed result: {result}")
+    test_fork = Fork("low_entropy_fork")
+    result = smith_scrub(test_fork, dojo_train=True)
+    print(f"Scrubbed: {result}")
