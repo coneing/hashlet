@@ -44,7 +44,7 @@ except ImportError:
 from web3 import Web3  # Ethereum hooks
 from solana.rpc.api import Client as SolanaClient  # Solana hooks
 
-# Full Seraph class for entropy guardianship (fixed for consistent prune <0.69, special 1.0)
+# Full Seraph class for entropy guardianship (fixed strict <0.69 prune, 1.0 exit)
 class Seraph:
     def test_entropy(self, data):
         """
@@ -52,7 +52,7 @@ class Seraph:
         Returns status string.
         """
         entropy = random.uniform(0, 1)  # Sim; replace with db.entropy_check(data) for real
-        if entropy == 1.0:  # Exact match for rare case
+        if entropy >= 0.99:  # Approximate 1.0 for rarity (adjust to exact if needed)
             print("You are the one.")  # Exit: Allows low-entropy freedom
             return "Exited"
         elif entropy < 0.69:
@@ -60,14 +60,14 @@ class Seraph:
             return "Pruned"
         return "Ignored"
 
-# Full EthicsModel for TACSI power balancing (fixed for ~50% low power whispers)
+# Full EthicsModel for TACSI power balancing (fixed variance for ~50% whispers)
 class EthicsModel:
     def balance_power(self, lived, corporate):
         """
         Simulates double-diamond cycle: Balances lived vs. corporate inputs with random variance.
         Returns balanced power (prunes excess).
         """
-        power = (len(lived) + len(corporate)) / 2 * random.uniform(0.4, 1.2)  # Variance for ~50% <0.69
+        power = (len(lived) + len(corporate)) / 2 * random.uniform(0.4, 1.2)  # ~50% <0.69
         if power > 1.0:
             power *= 0.69  # Prune excess
         return power
@@ -107,7 +107,7 @@ SCENERY_DESCS = [
     "Dojo hidden in ternary mist: Training updates, Smith none the wiser."
 ]
 
-# Integrated BlocsymDB for DB/cross-chain ops (fixed meditation reset)
+# Integrated BlocsymDB for DB/cross-chain ops (fixed meditation with idle_time)
 class BlocsymDB:
     def __init__(self, db_path='blocsym.db'):
         self.conn = sqlite3.connect(db_path)
