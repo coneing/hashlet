@@ -143,7 +143,6 @@ pub mod surface_tension {
             lp_tokens,
         )?;
         ctx.accounts.mini_dex.filled += swap_amount;
-        ctx.accounts.swapper_profile.unclaimed_harvest += flash_loan_fee;
         emit!(FlashLoanSwapExecuted {
             user: ctx.accounts.user.key(),
             input_mint,
