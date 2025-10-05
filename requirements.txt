@@ -34,3 +34,8 @@ scipy  # for hybrid grader, vectors
 mpmath
 pytz
 # Note: whisper.cpp installed via brew/clone, not pip
+# Note: On Debian and Ubuntu:
+# sudo apt update
+# sudo apt install portaudio19-dev
+# Then retry: 
+# pip install pyaudio
