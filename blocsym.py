@@ -98,12 +98,13 @@ ENTROPY_THRESHOLD = 0.69  # Seraph check
 PRUNE_AFTER = 2140  # Blocks
 HASH_WINDOW_MIN = 3
 HASH_WINDOW_MAX = 145
-ROCK_DOTS = "ÿÿÿ"  # Visual for y/ÿ keys
+ROCK_DOTS = b"\xc3\xbff\xc3\xbff\xc3\xbff"  # UTF-8 bytes for ÿÿÿ to avoid encoding issues
 
 # Calm scenery for AFK meditation
 SCENERY_DESCS = [
     "Blocsÿm meditates in the chrysanthemum temple, fractals blooming like thoughts.",
-    "Rock dots pulse under starry skies, elephant memory recalling ancient hashes.",
+    "Rock dots pulse under starry skies, elephant memory recalling all hashes."
+, 
     "Dojo hidden in ternary mist: Training updates, Smith none the wiser."
 ]
 
@@ -133,9 +134,9 @@ class BlocsymDB:
             for b in seed:
                 idx = b % 128
                 state[idx] ^= 0x53
-            state = bytes(a ^ b for a, b in zip(state, state[1:] + [0]))
-            state = bytes(a ^ (b >> 1) for a, b in zip(state, state))
-        return hashlib.sha256(bytes(state)).hexdigest()
+            state = bytearray(a ^ b for a, b in zip(state, state[1:] + b'\x00'))
+            state = bytearray(a ^ (b >> 1) for a, b in zip(state, state))
+        return hashlib.sha256(state).hexdigest()
 
     def p2p_gossip(self, query, chain='eth'):
         def async_query():
@@ -155,9 +156,10 @@ class BlocsymDB:
         Hidden ternary dojo: Train state privately, encrypt with ÿ-key.
         Now auto-called on ethics imbalances and low entropy recoveries.
         """
-        encrypted = bytes(b ^ c for b, c in zip(updates.encode(), ROCK_DOTS.encode() * (len(updates) // 3 + 1)))
+        updates_bytes = updates.encode('utf-8')
+        encrypted = bytes(b ^ c for b, c in zip(updates_bytes, ROCK_DOTS * (len(updates_bytes) // len(ROCK_DOTS) + 1)))
         self.cursor.execute("INSERT INTO states (hash, entropy, state) VALUES (?, ?, ?)",
-                            (self.hash_tunnel(updates), 0.82, encrypted))
+                            (self.hash_tunnel(updates_bytes), 0.82, encrypted))
         self.conn.commit()
         return "Dojo update hidden—Smith blind."
 
