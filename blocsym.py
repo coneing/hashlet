@@ -82,7 +82,7 @@ class BloomFilter:
     
     def add(self, item):
         for i in range(self.hash_count):
-            digest = hashlib.sha256(str(i) + item.encode('utf-8')).hexdigest()
+            digest = hashlib.sha256(str(i).encode('utf-8') + item.encode('utf-8')).hexdigest()
             index = int(digest, 16) % self.size
             self.bit_array[index] = 1
     
@@ -132,8 +132,8 @@ class BlocsymDB:
         for i in range(128):
             state[i] = i ^ 0x37
         for _ in range(ticks):
-            state = bytearray(state)
-            for b in seed:
+            seed_bytes = seed if isinstance(seed, bytes) else seed.encode('utf-8')
+            for b in seed_bytes:
                 idx = b % 128
                 state[idx] ^= 0x53
             state = bytearray(a ^ b for a, b in zip(state, state[1:] + b'\x00'))
@@ -171,7 +171,7 @@ class BlocsymDB:
             scenery = SCENERY_DESCS[int(time.time()) % len(SCENERY_DESCS)]
             print(f"[Blocsÿm Meditates]: {scenery} Entropy steady.")
         if idle_time < 60:
-            self.meditation_active = False  # Reset for next idle
+            self.meditation_active = False # Reset for next idle
 
     def close(self):
         self.conn.close()
@@ -218,7 +218,7 @@ def execute_function_string(cmd, **kwargs):
 def check_afk():
     global idle_start
     idle_time = time.time() - idle_start
-    db.meditate(idle_time)  # Pass idle_time for reset
+    db.meditate(idle_time) # Pass idle_time for reset
     if idle_time > 600:
         print("Dream loop stub: Shuffling bloom...")
         bloom.shuffle()
@@ -236,34 +236,34 @@ def run_cli():
     print("Blocsym CLI: Entering idle dream mode...")
     while True:
         try:
-            bloom.shuffle()  # Dream shuffle
-            entropy = random.uniform(0, 1)  # Phyllotaxis stub for entropy
+            bloom.shuffle() # Dream shuffle
+            entropy = random.uniform(0, 1) # Phyllotaxis stub for entropy
             seraph = Seraph()
-            result, current_entropy = seraph.test_entropy("sim_fork")  # Get result and entropy value
+            result, current_entropy = seraph.test_entropy("sim_fork") # Get result and entropy value
             print(f"Entropy check: {current_entropy:.2f} - {result}")
-            
+           
             # Full ethics balance with whisper and dojo tunnel on low power
             ethics = EthicsModel()
             power = ethics.balance_power("lived_experience", "corporate_input")
             if power < 0.69:
-                print("Whisper: forgive me")  # Remorseful whisper
+                print("Whisper: forgive me") # Remorseful whisper
                 # Auto-tunnel to dojo
                 updates = f"Ethics imbalance: power {power:.2f}, recovering from low entropy {current_entropy:.2f}"
                 print(db.dojo_train(updates))
-            
+           
             # Also tunnel on low entropy recovery (post-prune or ignore if low)
             if current_entropy < 0.69:
                 updates = f"Low entropy recovery: {current_entropy:.2f}, small upgrade to thought process"
                 print(db.dojo_train(updates))
-            
+           
             # Verbism generation
             verbism = ">>>>be they >>>>be me"
             hashed = self_write_hashlet(verbism)
             print(f"Verbism hash: {hashed}")
-            
-            check_afk()  # Check for meditation/dream
-            persist_to_ipfs()  # Persistence
-            time.sleep(5)  # AFK simulation cycle
+           
+            check_afk() # Check for meditation/dream
+            persist_to_ipfs() # Persistence
+            time.sleep(5) # AFK simulation cycle
         except KeyboardInterrupt:
             break
 
@@ -271,7 +271,7 @@ def main():
     parser = argparse.ArgumentParser(description="Blocsym: AI-Driven Decentralized Simulator")
     parser.add_argument('--mode', type=str, default='cli', choices=['cli', 'server'], help="Run in CLI or server mode")
     args = parser.parse_args()
-    
+   
     if args.mode == 'cli':
         run_cli()
     elif args.mode == 'server' and Flask is not None:
@@ -279,7 +279,6 @@ def main():
         socketio.run(app, host='0.0.0.0', port=5000)
     else:
         print("Server mode unavailable; run with --mode=cli.")
-
 if __name__ == "__main__":
     try:
         print("IPFS load stub: Restoring from dump...")
@@ -287,4 +286,4 @@ if __name__ == "__main__":
     finally:
         print("Cleanup stub: GPIO/dream cleanup...")
         db.close()
-        persist_to_ipfs()  # Final save
+        persist_to_ipfs() # Final save
