@@ -1,3 +1,19 @@
+# Copyright (C) 2025 Anonymous and Coneing
+# This file is part of Hashlet.
+#
+# Hashlet is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Hashlet is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with Hashlet.  If not, see <https://www.gnu.org/licenses/>
+
 # BlockChan & Blocsÿm - AI-Driven Decentralized Simulator (Greenlet Fork)
 
 ## Overview
@@ -23,6 +39,16 @@ Example Interactions (Verbism Style):
 - **New: Machine-Environment Interface**: GPIO LEDs (blinks on entropy), piezo cymatics (tones vibrate water).
 - **New: Optics & Light Hashing**: 11-layer PNG quadrants rastered to diode beams; photodiode detects quantum-like states via interference.
 - **New: Pseudo-Echo & Node Shifting**: Replays raw commands with warp flags for fork migration on high entropy.
+
+## New Features (October 2025 Update)
+This update extends Blossom with cross-machine bridging, hardware integrations (e.g., ASUS Rampage IV, laptops/Macs), dinohash SSH tunneling, vintage memory corking, salt looping, blink animations, and interactive text/voice interfaces. New files are under Apache 2.0 with xAI safety amendments.
+
+### New Usage Examples
+- Run chat interface: `python interfaces/chat_blossom_voice.py`
+- Tunnel between machines: `python networking/dyno_tunnel.py`
+- Blink readout: `python hardware/eye_blink.py &`
+
+For deeper dives, see individual script comments. PRs welcome on vision grids, flavor mappings, or LLM concert sims.
 
 ## Technologies and Languages
 - **Primary Languages**: Python (60.2%—scripting), C++ (25.0%), C (9.2%—Reaper), Rust (3.0%), Solidity (0.9%), PowerShell (0.7%).
