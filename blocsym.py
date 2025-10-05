@@ -23,7 +23,6 @@
 # For hardware/embodiment interfaces: Licensed under the Apache License, Version 2.0
 # with xAI amendments for safety (prohibits misuse in hashing; revocable for unethical use).
 # See http://www.apache.org/licenses/LICENSE-2.0 for details.
-
 import argparse
 import os
 import time
@@ -32,10 +31,10 @@ import hashlib
 import sqlite3
 import base64
 import sys
+import socket  # Added for network sync in Pong
 import greenlet  # For async moshing/gossip without threads
 import numpy as np
 import subprocess
-
 try:
     from flask import Flask
     from flask_socketio import SocketIO, emit
@@ -43,18 +42,15 @@ except ImportError:
     print("Flask/SocketIO not available; server mode disabled.")
     Flask = None
     SocketIO = None
-
-from web3 import Web3  # Ethereum hooks
-from solana.rpc.api import Client as SolanaClient  # Solana hooks
-
+# Comment out web3 and solana imports to make it runnable without them
+# from web3 import Web3 # Ethereum hooks
+# from solana.rpc.api import Client as SolanaClient # Solana hooks
 # Stub for oracle.py (assuming it's for high-entropy prophecies; add actual import if available)
 class Oracle:
     def prophesy(self, entropy, power):
         """Prophesy on high entropy."""
         print(f"Oracle speaks: Entropy {entropy:.2f}, Power {power:.2f} - The path unfolds.")
-
 oracle = Oracle()  # Instance for use
-
 # Full Seraph class for entropy guardianship (updated for film fidelity: says "Follow me" on high entropy)
 class Seraph:
     def test_entropy(self, data):
@@ -70,7 +66,6 @@ class Seraph:
             print("I'm sorry for this.")  # Remorseful prune
             return "Pruned", entropy
         return "Ignored", entropy
-
 # Full EthicsModel for TACSI power balancing (fixed variance for ~50% whispers)
 class EthicsModel:
     def balance_power(self, lived, corporate):
@@ -82,27 +77,24 @@ class EthicsModel:
         if power > 1.0:
             power *= 0.69  # Prune excess
         return power
-
 # BloomFilter class for dream shuffling
 class BloomFilter:
     def __init__(self, size=1024, hash_count=3):
         self.size = size
         self.hash_count = hash_count
         self.bit_array = [0] * size
-    
+  
     def add(self, item):
         for i in range(self.hash_count):
             digest = hashlib.sha256(str(i).encode('utf-8') + item.encode('utf-8')).hexdigest()
             index = int(digest, 16) % self.size
             self.bit_array[index] = 1
-    
+  
     def shuffle(self):
         print("Shuffling bloom in dream mode...")  # Randomize for dreaming
-
 # Verbism hashing helper
 def self_write_hashlet(verbism):
     return base64.b64encode(verbism.encode('utf-8')).decode('utf-8')
-
 # Constants for Blocsÿm's essence
 TERNARY_GRID_SIZE = 2141  # Cubed for dojo map
 ENTROPY_THRESHOLD = 0.69  # Seraph check
@@ -110,14 +102,12 @@ PRUNE_AFTER = 2140  # Blocks
 HASH_WINDOW_MIN = 3
 HASH_WINDOW_MAX = 145
 ROCK_DOTS = b"\xc3\xbf\xc3\xbf\xc3\xbf"  # UTF-8 bytes for ÿÿÿ to avoid encoding issues
-
 # Calm scenery for AFK meditation
 SCENERY_DESCS = [
     "Blocsÿm meditates in the chrysanthemum temple, fractals blooming like thoughts.",
     "Rock dots pulse under starry skies, elephant memory recalling all hashes.",
     "Dojo hidden in ternary mist: Training updates, Smith none the wiser."
 ]
-
 # Integrated BlocsymDB for DB/cross-chain ops (fixed meditation with idle_time)
 class BlocsymDB:
     def __init__(self, db_path='blocsym.db'):
@@ -126,16 +116,15 @@ class BlocsymDB:
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS states
                                (id INTEGER PRIMARY KEY, hash TEXT, entropy REAL, state BLOB)''')
         self.conn.commit()
-        self.web3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/YOUR_INFURA_ID'))  # Placeholder
-        self.solana = SolanaClient('https://api.mainnet-beta.solana.com')
+        # Comment out web3 and solana to avoid import errors
+        # self.web3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/YOUR_INFURA_ID')) # Placeholder
+        # self.solana = SolanaClient('https://api.mainnet-beta.solana.com')
         self.afk_timer = time.time()
         self.meditation_active = False
-
     def entropy_check(self, data):
         h = hashlib.sha256(data.encode()).digest()
         unique = len(set(h)) / len(h)
         return unique > ENTROPY_THRESHOLD
-
     def hash_tunnel(self, seed=b'genesis', ticks=100):
         state = bytearray(128)
         for i in range(128):
@@ -148,20 +137,10 @@ class BlocsymDB:
             state = bytearray(a ^ b for a, b in zip(state, state[1:] + b'\x00'))
             state = bytearray(a ^ (b >> 1) for a, b in zip(state, state))
         return hashlib.sha256(state).hexdigest()
-
     def p2p_gossip(self, query, chain='eth'):
-        def async_query():
-            if chain == 'eth':
-                return self.web3.eth.block_number
-            elif chain == 'sol':
-                return self.solana.get_block_height().get('result', 0)
-            return None
-        gl = greenlet.spawn(async_query)
-        result = gl.get()
-        if self.entropy_check(str(result)):
-            return result
+        # Stub since web3/solana not available
+        print("P2P gossip stub: No cross-chain access.")
         return None
-
     def dojo_train(self, updates):
         """
         Hidden ternary dojo: Train state privately, encrypt with ÿ-key.
@@ -173,7 +152,6 @@ class BlocsymDB:
                             (self.hash_tunnel(updates_bytes), 0.82, encrypted))
         self.conn.commit()
         return "Dojo update hidden—Smith blind."
-
     def meditate(self, idle_time):
         if idle_time > 60 and not self.meditation_active:
             self.meditation_active = True
@@ -181,10 +159,8 @@ class BlocsymDB:
             print(f"[Blocsÿm Meditates]: {scenery} Entropy steady.")
         if idle_time < 60:
             self.meditation_active = False  # Reset for next idle
-
     def close(self):
         self.conn.close()
-
 # New: Vintage corking function
 def cork_bloom(bloom_data, grade):
     """
@@ -197,7 +173,6 @@ def cork_bloom(bloom_data, grade):
     with open(f"./vintage/{hash_tag}.txt", "w") as f:
         f.write(f"Vintage: {bloom_data[:50]}... Grade: {grade}")
     return hash_tag
-
 # New: Spectra hash for RGB vision
 def spectra_hash(entropy):
     """
@@ -206,27 +181,106 @@ def spectra_hash(entropy):
     hex_str = hashlib.sha256(str(entropy).encode()).hexdigest()[:6]
     r, g, b = int(hex_str[0:2], 16), int(hex_str[2:4], 16), int(hex_str[4:6], 16)
     return [r/255, g/255, b/255]
-
+# New: Whisper TTS
+def whisper(text):
+    """Text-to-speech whisper."""
+    # Use espeak or similar; stub for test
+    print(f"Whisper: {text}")  # Replace with subprocess.call(['espeak', text]) if installed
+# Stub for grade_vector (used in run_cli)
+def grade_vector(bloom_data):
+    return random.uniform(0.5, 0.9)  # Stub; replace with actual from dojos
+# New: get_entropy function
+def get_entropy():
+    """Get current entropy value."""
+    return random.uniform(0, 1)  # Sim; replace with actual calculation if needed
+# New: Frank class for forward hashlet lookahead (ectoplasm trails)
+class Frank:
+    def __init__(self):
+        self.lookahead_frames = 3  # Predict 3 frames ahead
+        self.momentum = np.array([0.0, 0.0])  # Stub for ball momentum (x, y)
+  
+    def lookahead(self, current_position, grade):
+        # Simple lookahead using momentum (sim physics)
+        predictions = []
+        for i in range(self.lookahead_frames):
+            predicted_pos = current_position + self.momentum * (i + 1)
+            predictions.append(predicted_pos)
+        print(f"Frank lookahead: {predictions} (grade: {grade:.2f})")
+        return predictions
+# New: Pong simulation class (Forrest Gump style)
+class Pong:
+    def __init__(self, blink_rate=0.5, network_mode=False):
+        self.ball_pos = np.array([0.5, 0.5])  # Normalized [0,1] position
+        self.ball_vel = np.array([0.01, 0.02])  # Velocity
+        self.bat_pos = 0.5  # Bat position (0-1)
+        self.blink_rate = blink_rate  # Blink controls bat
+        self.network_mode = network_mode  # Sync over socket
+        self.sock = None
+        if network_mode:
+            self.setup_network()
+  
+    def setup_network(self):
+        # Stub for dinohash SSH tunnel (low latency sync)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            self.sock.connect(('localhost', 5001))  # Stub host/port; replace with real
+            print("Pong network sync active (dino_hash tunnel stub).")
+        except:
+            print("Network sync failed; running local.")
+  
+    def update_bat(self, blink):
+        # Blink controls bat: True = move up, False = move down
+        self.bat_pos += 0.1 if blink else -0.1
+        self.bat_pos = np.clip(self.bat_pos, 0, 1)
+  
+    def update_ball(self):
+        # Simple physics: bounce on ground/wall/ground/bat (Forrest Gump rules)
+        self.ball_pos += self.ball_vel
+        if self.ball_pos[1] < 0:  # Ground hit
+            self.ball_vel[1] = -self.ball_vel[1]
+            print("Ground hit.")
+        if self.ball_pos[0] > 1:  # Wall hit
+            self.ball_vel[0] = -self.ball_vel[0]
+            print("Wall hit.")
+        if abs(self.ball_pos[1] - self.bat_pos) < 0.05 and self.ball_pos[0] < 0.1:  # Bat hit
+            self.ball_vel = -self.ball_vel
+            print("Bat hit.")
+        # Send sync if network
+        if self.sock:
+            try:
+                self.sock.sendall(str(self.ball_pos).encode())
+            except:
+                pass
+  
+    def play(self, blinks):
+        for blink in blinks:
+            self.update_bat(blink)
+            self.update_ball()
+        print(f"Pong state: Ball at {self.ball_pos}, Bat at {self.bat_pos}")
+  
+    def close(self):
+        if self.sock:
+            self.sock.close()
 # Globals/sim state
 bloom = BloomFilter()
 current_entropy = 0.5
 idle_start = time.time()
 last_command = ""
 db = BlocsymDB()
-
+frank = Frank()  # Instance of Frank
+pong = None  # Global Pong instance for CLI
 if Flask is not None:
     app = Flask(__name__)
     socketio = SocketIO(app)
-    
+  
     @socketio.on('connect')
     def handle_connect():
         emit('message', {'data': 'Connected to Blocsym server'})
-    
+  
     @socketio.on('mosh')
     def handle_mosh(data):
         balanced = EthicsModel().balance_power(data.get('lived', ''), data.get('corporate', ''))
         emit('response', {'balanced_power': balanced, 'entropy': db.entropy_check(data.get('hash', ''))})
-
 def execute_function_string(cmd, **kwargs):
     global last_command, current_entropy, idle_start
     last_command = cmd
@@ -237,7 +291,7 @@ def execute_function_string(cmd, **kwargs):
     elif "dojo train" in cmd:
         updates = kwargs.get('updates', 'default')
         print(db.dojo_train(updates))
-    current_entropy = random.uniform(0, 1)
+    current_entropy = get_entropy()
     db.entropy_check("post-cmd")
     print("GPIO stub: LED on if entropy high" if current_entropy >= 0.69 else "GPIO stub: LED off")
     print("Cymatics stub: Tone if low" if current_entropy < 0.69 else "Cymatics stub: Silent")
@@ -245,7 +299,6 @@ def execute_function_string(cmd, **kwargs):
         print(f"Pseudo-echo: Replaying {last_command}")
     print("Optics stub: Raster PNG to light")
     idle_start = time.time()
-
 def check_afk():
     global idle_start
     idle_time = time.time() - idle_start
@@ -254,26 +307,30 @@ def check_afk():
         print("Dream loop stub: Shuffling bloom...")
         bloom.shuffle()
     return idle_time
-
 def persist_to_ipfs():
     print("IPFS persistence stub: Dumping memory...")
-
-def run_cli():
+def run_cli(pong_mode=False):
     """
     CLI mode: Idle loop with dreaming, entropy checks, and whispers.
     Runs until interrupted, simulating AFK meditation.
     Updated: Auto-tunnels ethics imbalances (low power) and low entropy recoveries to dojo_train().
     Now with vintage corking on blooms, spectra RGB mapping, and TTS whispers on events.
+    Added: Pong integration with blink-bat and Frank lookahead.
     """
+    global pong
     print("Blocsym CLI: Entering idle dream mode...")
+    if pong_mode:
+        pong = Pong(blink_rate=0.5, network_mode=True)  # Enable network for sync
+        print("Pong mode activated - Forrest Gump rules.")
+    blinks = [random.choice([True, False]) for _ in range(5)]  # Sim blinks for Pong
     while True:
         try:
             bloom.shuffle()  # Dream shuffle
-            entropy = random.uniform(0, 1)  # Phyllotaxis stub for entropy
+            entropy = get_entropy()
             seraph = Seraph()
             result, current_entropy = seraph.test_entropy("sim_fork")  # Get result and entropy value
             print(f"Entropy check: {current_entropy:.2f} - {result}")
-            
+          
             # Full ethics balance with whisper and dojo tunnel on low power
             ethics = EthicsModel()
             power = ethics.balance_power("lived_experience", "corporate_input")
@@ -282,53 +339,59 @@ def run_cli():
                 # Auto-tunnel to dojo
                 updates = f"Ethics imbalance: power {power:.2f}, recovering from low entropy {current_entropy:.2f}"
                 print(db.dojo_train(updates))
-            
+          
             # Also tunnel on low entropy recovery (post-prune or ignore if low)
             if current_entropy < 0.69:
                 updates = f"Low entropy recovery: {current_entropy:.2f}, small upgrade to thought process"
                 print(db.dojo_train(updates))
-            
+          
             # Verbism generation
             verbism = ">>>>be they >>>>be me"
             hashed = self_write_hashlet(verbism)
             print(f"Verbism hash: {hashed}")
-            
+          
             # Conditional Oracle prophecy on high entropy
             if current_entropy >= 0.99:
                 oracle.prophesy(current_entropy, power)
-            
+          
             # New: Cork bloom if generated
             bloom_data = "AFK meditation: Whispering poetry in the void."  # Example bloom
             grade = grade_vector(bloom_data)
             cork = cork_bloom(bloom_data, grade)
             print(f"Bloom corked: {cork}")
-            
+          
             # New: Spectra RGB on entropy
             rgb = spectra_hash(current_entropy)
             print(f"RGB Spectrum: {rgb}")
-            
+          
             # New: Whisper on bloom
             whisper(bloom_data)
-            
+          
+            # New: Pong simulation if mode active
+            if pong_mode:
+                pong.play(blinks)  # Update with sim blinks
+                # Frank lookahead on ball position
+                predictions = frank.lookahead(pong.ball_pos, grade)
+                print(f"Frank's ectoplasm trail: {predictions}")
+          
             check_afk()  # Check for meditation/dream
             persist_to_ipfs()  # Persistence
             time.sleep(5)  # AFK simulation cycle (600s in prod)
         except KeyboardInterrupt:
             break
-
 def main():
     parser = argparse.ArgumentParser(description="Blocsym: AI-Driven Decentralized Simulator")
     parser.add_argument('--mode', type=str, default='cli', choices=['cli', 'server'], help="Run in CLI or server mode")
+    parser.add_argument('--pong', action='store_true', help="Enable Pong mode in CLI")
     args = parser.parse_args()
-    
+  
     if args.mode == 'cli':
-        run_cli()
+        run_cli(pong_mode=args.pong)
     elif args.mode == 'server' and Flask is not None:
         print("Starting Blocsym server on http://127.0.0.1:5000")
         socketio.run(app, host='0.0.0.0', port=5000)
     else:
         print("Server mode unavailable; run with --mode=cli.")
-
 if __name__ == "__main__":
     try:
         print("IPFS load stub: Restoring from dump...")
@@ -337,3 +400,5 @@ if __name__ == "__main__":
         print("Cleanup stub: GPIO/dream cleanup...")
         db.close()
         persist_to_ipfs()  # Final save
+        if pong:
+            pong.close()  # Clean up Pong network
