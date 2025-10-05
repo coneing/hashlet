@@ -35,6 +35,8 @@ import socket # Added for network sync in Pong
 import greenlet # For async moshing/gossip without threads
 import numpy as np
 import subprocess
+from ribit import ribit_generate  # For RIBIT mapping
+from ghost_hand import GhostHand  # For replacing Pong
 try:
     from flask import Flask
     from flask_socketio import SocketIO, emit
@@ -155,14 +157,14 @@ class BlocsymDB:
             self.meditation_active = True
             scenery = SCENERY_DESCS[int(time.time()) % len(SCENERY_DESCS)]
             print(f"[Blocsÿm Meditates]: {scenery} Entropy steady.")
-            self.gimbal_flex(random.uniform(-1,1))  # Tilt based on sim price_delta from history
+            self.gimbal_flex(random.uniform(-1,1)) # Tilt based on sim price_delta from history
         if idle_time < 60:
             self.meditation_active = False # Reset for next idle
     def close(self):
         self.conn.close()
     def rod_whisper(self, pressure):
         """Rod whisper for entropy checks: Normalize blink pressure to tension (0-1)."""
-        return max(0, min(1, pressure))  # Sim; replace with GPIO.read if hardware
+        return max(0, min(1, pressure)) # Sim; replace with GPIO.read if hardware
     def gimbal_flex(self, delta_price):
         """Gimbal tilt based on price curl (for AFK meditate)."""
         curl = delta_price < -0.618 # Fib check for left turn
@@ -218,21 +220,21 @@ class HuggingFaceModel:
     def __init__(self):
         pass
     def process(self, input_text):
-        return "Stubbed semantic output: " + input_text.upper()  # Stub for e.g., BERT embedding
+        return "Stubbed semantic output: " + input_text.upper() # Stub for e.g., BERT embedding
 # Stub for LLaMA (for communication between facehuggers)
 class LLaMA:
     def __init__(self):
         pass
     def communicate(self, message):
-        return "LLaMA whispered: " + message[::-1]  # Stub for reversed message as communication
+        return "LLaMA whispered: " + message[::-1] # Stub for reversed message as communication
 # New: DualFacehugger class for two 'eyes' communicating via LLaMA, using Hugging Face for processing
 class DualFacehugger:
     def __init__(self):
-        self.left_eye = HuggingFaceModel()  # Left facehugger for one eye/blind spot
-        self.right_eye = HuggingFaceModel()  # Right for the other
-        self.llama_comms = LLaMA()  # LLaMA for inter-eye communication
+        self.left_eye = HuggingFaceModel() # Left facehugger for one eye/blind spot
+        self.right_eye = HuggingFaceModel() # Right for the other
+        self.llama_comms = LLaMA() # LLaMA for inter-eye communication
         print("Dual Facehuggers initialized - hugging face with LLaMA whispers.")
-    
+   
     def process_input(self, left_input, right_input):
         """Process inputs from both eyes, communicate via LLaMA."""
         left_output = self.left_eye.process(left_input)
@@ -241,15 +243,15 @@ class DualFacehugger:
         llama_response = self.llama_comms.communicate(comm_message)
         print(f"Dual output: {llama_response}")
         return llama_response
-    
+   
     def integrate_with_pong(self, pong):
         """Integrate with Pong: Use eye inputs to update bat/ball."""
-        left_blink = random.choice(["open", "closed"])  # Sim eye input
+        left_blink = random.choice(["open", "closed"]) # Sim eye input
         right_blink = random.choice(["open", "closed"])
         self.process_input(left_blink, right_blink)
         # Update Pong based on processed input (stubbed)
-        pong.update_bat(random.choice([True, False]))  # Random for sim
-    
+        pong.update_bat(random.choice([True, False])) # Random for sim
+   
 # Globals/sim state
 bloom = BloomFilter()
 current_entropy = 0.5
@@ -260,7 +262,7 @@ frank = Frank() # Instance of Frank
 pong = None # Global Pong instance for CLI
 spoon = SpoonBoy() # Global SpoonBoy instance for CLI testing
 facehugger = None # Global DualFacehugger for new mode
-ghost_hand = None  # Global GhostHand for hedging mode
+ghost_hand = None # Global GhostHand for hedging mode
 if Flask is not None:
     app = Flask(__name__)
     socketio = SocketIO(app)
@@ -335,10 +337,12 @@ def run_cli(pong_mode=False, spoon_mode=False, dual_mode=False, ghost_mode=False
         try:
             bloom.shuffle() # Dream shuffle
             entropy = get_entropy()
+            ribit_int, state, color = ribit_generate(str(entropy)) # Add RIBIT for entropy
+            print(f"Entropy RIBIT: {ribit_int}, State: {state}, Color: {color}")
             seraph = Seraph()
             result, current_entropy = seraph.test_entropy("sim_fork") # Get result and entropy value
             print(f"Entropy check: {current_entropy:.2f} - {result}")
-        
+       
             # Full ethics balance with whisper and dojo tunnel on low power
             ethics = EthicsModel()
             power = ethics.balance_power("lived_experience", "corporate_input")
@@ -347,51 +351,51 @@ def run_cli(pong_mode=False, spoon_mode=False, dual_mode=False, ghost_mode=False
                 # Auto-tunnel to dojo
                 updates = f"Ethics imbalance: power {power:.2f}, recovering from low entropy {current_entropy:.2f}"
                 print(db.dojo_train(updates))
-        
+       
             # Also tunnel on low entropy recovery (post-prune or ignore if low)
             if current_entropy < 0.69:
                 updates = f"Low entropy recovery: {current_entropy:.2f}, small upgrade to thought process"
                 print(db.dojo_train(updates))
-        
+       
             # Verbism generation
             verbism = ">>>>be they >>>>be me"
             hashed = self_write_hashlet(verbism)
             print(f"Verbism hash: {hashed}")
-        
+       
             # Conditional Oracle prophecy on high entropy
             if current_entropy >= 0.99:
                 oracle.prophesy(current_entropy, power)
-        
+       
             # New: Cork bloom if generated
             bloom_data = "AFK meditation: Whispering poetry in the void." # Example bloom
             grade = grade_vector(bloom_data)
             cork = cork_bloom(bloom_data, grade)
             print(f"Bloom corked: {cork}")
-        
+       
             # New: Spectra RGB on entropy
             rgb = spectra_hash(current_entropy)
             print(f"RGB Spectrum: {rgb}")
-        
+       
             # New: Whisper on bloom
             whisper(bloom_data)
-        
+       
             # New: Pong simulation if mode active
             if pong_mode:
                 pong.play(blinks) # Update with sim blinks
                 # Frank lookahead on ball position
                 predictions = frank.lookahead(pong.ball_pos, grade)
                 print(f"Frank's ectoplasm trail: {predictions}")
-        
+       
             # New: Ghost Hand hedging if mode active
             if ghost_mode:
-                tension = db.rod_whisper(random.uniform(0, 1))  # Sim blink pressure
+                tension = db.rod_whisper(random.uniform(0, 1)) # Sim blink pressure
                 print(f"Rod tension: {tension:.2f}")
-                delta = random.uniform(-1, 1)  # Sim price delta
+                delta = random.uniform(-1, 1) # Sim price delta
                 curl = db.gimbal_flex(delta)
                 print(f"Gimbal curl: {curl}")
                 hedge = ghost_hand.ladder_hedge()
                 print(f"Ladder hedge: {hedge}")
-        
+       
             check_afk() # Check for meditation/dream
             persist_to_ipfs() # Persistence
             time.sleep(5) # AFK simulation cycle (600s in prod)
