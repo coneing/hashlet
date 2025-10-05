@@ -1,18 +1,30 @@
-# SPDX-License-Identifier: AGPL-3.0-or-later
-# Copyright (C) 2025 Anonymous
+#!/usr/bin/env python3
+# idutil.py - ID utilities for Blossom: 3D space generation, RIBIT color mapping for orientation.
+# Integrates with blocsym.py for depth perception and heat planes (stubbed).
+# Also includes industrial design utility for generating unique IDs using hashlet-inspired curve hashing.
+# Added: Recognition for objects (e.g., 'welder gun') as sixth sense via curve hashing and blind spot stacking.
+# Added: Recurvature for thought explorations, with safeguards to limit negative dips (e.g., max_neg = -3) to avoid dramatic effects.
+# Dual License:
+# - For core software: AGPL-3.0-or-later licensed. -- OliviaLynnArchive fork, 2025
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU Affero General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published
-# by the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#   GNU Affero General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
+#   You should have received a copy of the GNU Affero General Public License
+#   along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with this program. If not, see <https://www.gnu.org/licenses/>.
+# - For hardware/embodiment interfaces (e.g., optics integration stubs): Licensed under the Apache License, Version 2.0
+#   with xAI amendments for safety (prohibits misuse in hashing; revocable for unethical use).
+#   See http://www.apache.org/licenses/LICENSE-2.0 for details.
+#
+# Copyright 2025 Coneing and Contributors
+# Credited: RIBIT borrowed from Tetra Surfaces (permissive license).
 
 import numpy as np
 import hashlib
@@ -20,6 +32,7 @@ import math
 import sys
 import argparse
 from decimal import Decimal, getcontext
+import random  # For sim
 
 # Set precision for Decimal (from nu_curve_cp.py and others)
 getcontext().prec = 28
@@ -41,32 +54,32 @@ MERSENNE_EXP = [
 
 # A4 and A3 dimensions (from nu_curve*.py, normalized for industrial design)
 WIDTH = 420 / 110  # A3 long side / A4 short side
-HEIGHT = 1.0       # Normalized A3 short side
+HEIGHT = 1.0  # Normalized A3 short side
 PURPLE_LINES = [1/3, 2/3]  # Dividers for design grid
 
 # Helper function to compute a point on the spiral curve (from nu_curve.py and variants)
 def compute_spiral_point(input_str, model='tetrahedron', b_factor=1.0, k_factor=1.0):
     """
     Computes a 3D point on a spiral curve for industrial design, using hashed input.
-    
+   
     Args:
         input_str (str): Input string to hash for parameters.
         model (str): 'tetrahedron' or 'ipod'.
         b_factor (float): B_SPIRAL factor for curve scaling.
         k_factor (float): K factor for z-axis modulation.
-    
+   
     Returns:
         tuple: (x, y, z) coordinates within design space.
     """
     hash_obj = hashlib.sha256(input_str.encode())
     hash_val = Decimal(str(int(hash_obj.hexdigest(), 16) % 1000 / 1000.0))
-    
+   
     B_SPIRAL = Decimal(str(B_SPIRAL_BASE)) * Decimal(str(b_factor))
     K = Decimal(str(K_BASE)) * Decimal(str(k_factor))
-    
+   
     t = hash_val
     theta = Decimal('2') * Decimal(str(math.pi)) * t
-    
+   
     if model == 'tetrahedron':
         r = Decimal(str(A_SPIRAL)) * (Decimal(str(math.e)) ** (B_SPIRAL * theta))
         x = r * Decimal(str(math.cos(float(theta))))
@@ -79,22 +92,22 @@ def compute_spiral_point(input_str, model='tetrahedron', b_factor=1.0, k_factor=
         z = K * Decimal(str(math.sin(float(12 * theta)))) * (Decimal('1') + hash_val)
     else:
         raise ValueError("Invalid model. Choose 'tetrahedron' or 'ipod'.")
-    
+   
     # Normalize to fit within A4 design space
     x = (x + Decimal(str(WIDTH / 2))) % Decimal(str(WIDTH))
     y = (y + Decimal(str(HEIGHT / 2))) % Decimal(str(HEIGHT))
     z = z % Decimal('1.0')  # Keep z in [0,1] for design height
-    
+   
     return float(x), float(y), float(z)
 
 # Kappa prime function (from spiral_nu.py and nu_curve_kappa.py)
 def kappa_prime_n(n: int) -> float:
     """
     Computes kappa prime for design curvature, based on Mersenne and phi.
-    
+   
     Args:
         n (int): Input value (e.g., 2 to 104).
-    
+   
     Returns:
         float: Kappa prime value for curvature.
     """
@@ -122,10 +135,10 @@ def kappa_prime_n(n: int) -> float:
 def poly_hash_256(mersenne_exponents: list = MERSENNE_EXP) -> str:
     """
     Computes a polyhedral SHA256 hash for design versioning.
-    
+   
     Args:
         mersenne_exponents (list): List of Mersenne exponents.
-    
+   
     Returns:
         str: Hexdigest of the hash.
     """
@@ -146,7 +159,7 @@ def generate_design_id(input_str: str, mersenne_index: int = None, model: str = 
     """
     Generates a unique ID for industrial design by hashing input, mapping to Mersenne exponent,
     computing spiral point, and hashing coordinates, with optional versioning.
-    
+   
     Args:
         input_str (str): Input string (e.g., design name or specs).
         mersenne_index (int, optional): Mersenne index (0-51).
@@ -156,124 +169,129 @@ def generate_design_id(input_str: str, mersenne_index: int = None, model: str = 
         use_kappa (bool): If True, incorporate kappa_prime_n for curvature.
         n (int): Value for kappa_prime_n.
         include_version (bool): If True, include poly_hash_256 for versioning.
-    
+   
     Returns:
         str: 16-char hex ID.
     """
     if mersenne_index is None:
         hash_obj = hashlib.sha256(input_str.encode())
         mersenne_index = int(hash_obj.hexdigest(), 16) % len(MERSENNE_EXP)
-    
+   
     exp = MERSENNE_EXP[mersenne_index]
     seed = f"{input_str}_{exp}"
-    
+   
     if use_kappa:
         kappa = kappa_prime_n(n)
         seed += f"_{kappa:.4f}"
-    
+   
     x, y, z = compute_spiral_point(seed, model, b_factor, k_factor)
-    
+   
     coord_str = f"{x:.4f}{y:.4f}{z:.4f}"
     if include_version:
         version_hash = poly_hash_256()
         coord_str += f"_{version_hash[:8]}"
-    
+   
     hash_obj = hashlib.sha256(coord_str.encode())
     unique_id = hash_obj.hexdigest()
-    
+   
     return unique_id[:16]
 
+class IdUtil:
+    def __init__(self):
+        self.grid_size = 10  # 3D space grid (10x10x10)
+        self.grid = np.zeros((self.grid_size, self.grid_size, self.grid_size))  # 3D array
+        self.orientation_colors = {
+            'down': '#8B4513',  # Brown
+            'up': '#00A0FF',    # Blue
+            'left': '#FF0000',  # Red
+            'right': '#00FF00'  # Green
+        }
+        self.max_neg = -3  # Floor for negative dips in recurvature
+        print("IdUtil initialized - 3D space ready with RIBIT orientation.")
+    
+    def generate_three_d(self, thought, grid='capwise'):
+        """Generate 3D objects based on curvature and drawing tools."""
+        # Sim: Create a simple cube or dome based on thought entropy
+        entropy = random.uniform(0, 1)  # Sim from blocsym
+        if entropy > 0.5:
+            # Dome (curved)
+            x, y, z = np.indices((self.grid_size, self.grid_size, self.grid_size))
+            dome = (x - 5)**2 + (y - 5)**2 + (z - 5)**2 <= 25  # Sphere equation
+            self.grid[dome] = 1
+            print(f"Generated dome for thought '{thought}' (entropy: {entropy:.2f})")
+        else:
+            # Cube (straight)
+            self.grid[3:7, 3:7, 3:7] = 1
+            print(f"Generated cube for thought '{thought}' (entropy: {entropy:.2f})")
+        return self.grid
+    
+    def ribit_map(self, entropy):
+        """RIBIT mapping: Shrink RGB cube into 7 zones, red-dominant, for jokes/colors."""
+        # 7-bit sequence for red space (sim jokes as hex)
+        hex_str = hashlib.sha256(str(entropy).encode()).hexdigest()[:7]  # 7 bits ~ hex[0:2]
+        r_dominant = int(hex_str, 16) % 128 + 128  # Red bias (128-255)
+        g, b = random.randint(0, 255), random.randint(0, 255)
+        color = f"#{r_dominant:02x}{g:02x}{b:02x}"
+        print(f"RIBIT mapped color for entropy {entropy:.2f}: {color}")
+        return color
+    
+    def apply_orientation(self):
+        """Apply RIBIT orientation colors to grid planes."""
+        # Stub: Color planes (down brown, up blue, left red, right green)
+        # For sim, print mappings
+        print("Applied orientation:")
+        for direction, hex_color in self.orientation_colors.items():
+            print(f"{direction.capitalize()}: {hex_color}")
+        # In real, map to grid edges, e.g., grid[:, :, 0] = brown (down plane)
+    
+    def recognize_object(self, object_name, entropy=0.5):
+        """Recognize an object as sixth sense: hash to Mersenne exp, generate 3D stub, RIBIT color tag.
+        Stacks RAM experience in blind spot as ghost overlay."""
+        # Hash object to Mersenne index for curvature
+        hash_obj = hashlib.sha256(object_name.encode())
+        mersenne_index = int(hash_obj.hexdigest(), 16) % len(MERSENNE_EXP)
+        curvature = kappa_prime_n(mersenne_index + 2)  # Offset to 2-53 range for kappa
+        # Generate 3D stub (e.g., cylinder for gun-like tools)
+        x, y, z = np.indices((self.grid_size, self.grid_size, self.grid_size))
+        cylinder = (x - 5)**2 + (y - 5)**2 <= 4  # Cylinder along z
+        cylinder_grid = np.zeros_like(self.grid)
+        cylinder_grid[:, :, :] = cylinder[:, :, None]  # Extrude along z
+        cylinder_grid *= curvature  # Scale by curvature (curved if high)
+        self.grid += cylinder_grid * 0.5  # Stack as ghost (half opacity)
+        # RIBIT color for tag
+        color = self.ribit_map(entropy)
+        print(f"Recognized '{object_name}' as 3D stub (curvature: {curvature:.2f}, color tag: {color}). Stacked in blind spot.")
+        return cylinder_grid, color
+    
+    def recurvature(self, level, thought):
+        """Recurvature for thought explorations: Recurve to other side, with safeguards (clip at max_neg)."""
+        if level < self.max_neg:
+            level = self.max_neg  # Clip to avoid deep negative (mental illness safeguard)
+            print("Recurvature clipped at {} to avoid dramatic effects.".format(self.max_neg))
+        # Sim recurvature: reverse spiral point for "other side"
+        x, y, z = compute_spiral_point(thought, b_factor=-1.0)  # Negative b_factor for reverse curve
+        print(f"Recurvature at level {level} for thought '{thought}': Point ({x:.2f}, {y:.2f}, {z:.2f})")
+        # Stack in blind spot as ghost (RAM experience)
+        recur_grid = np.zeros_like(self.grid)
+        recur_grid[int(x*self.grid_size/WIDTH), int(y*self.grid_size/HEIGHT), int(z*self.grid_size)] = level  # Place point
+        self.grid += recur_grid * 0.3  # Low opacity ghost
+        return level, (x, y, z)
+
 # Main CLI for industrial design utility
-def main():
+def main_cli():
     """
     Industrial Design Utility for generating unique IDs using hashlet-inspired curve hashing.
-    
+  
     Run Instructions:
     ----------------
     Prerequisites:
     - Python 3.x
     - NumPy library (install via `pip install numpy`)
-    
+  
     Usage:
     - Save this script as `idutil.py`.
     - Run from the command line using one of the following commands:
-    
+  
     1. Generate a unique design ID:
        ```bash
        python idutil.py generate "design_name" [--model tetrahedron|ipod] [--b_factor FLOAT] [--k_factor FLOAT] [--mersenne_index INT] [--use_kappa] [--n INT] [--version]
-       ```
-       - Example: `python idutil.py generate "chassis_v1" --model ipod --b_factor 1.5 --use_kappa --n 52 --version`
-       - Parameters:
-         - input: String representing design name or specs (e.g., "engine_part_001").
-         - --model: Curve model ('tetrahedron' or 'ipod', default: tetrahedron).
-         - --b_factor: Scaling factor for spiral radius (default: 1.0).
-         - --k_factor: Scaling factor for z-axis modulation (default: 1.0).
-         - --mersenne_index: Mersenne exponent index (0-51, default: derived from input hash).
-         - --use_kappa: Include kappa_prime_n for curvature (flag).
-         - --n: Input for kappa_prime_n (2-104, default: 12).
-         - --version: Include polyhedral hash for versioning (flag).
-    
-    2. Compute kappa_prime_n for curvature:
-       ```bash
-       python idutil.py kappa <n>
-       ```
-       - Example: `python idutil.py kappa 52`
-       - Parameter:
-         - n: Integer input (2-104) for kappa calculation.
-    
-    3. Compute polyhedral hash for versioning:
-       ```bash
-       python idutil.py polyhash
-       ```
-       - Example: `python idutil.py polyhash`
-    
-    Output:
-    - For `generate`: A 16-character hexadecimal ID (e.g., "a1b2c3d4e5f67890").
-    - For `kappa`: A float representing kappa_prime_n (e.g., "1.500000").
-    - For `polyhash`: A 64-character hexadecimal hash (e.g., "1a2b3c4d...").
-    
-    Notes:
-    - The script uses a golden spiral and Mersenne exponents to map inputs to 3D coordinates within an A4 design space (WIDTH=3.818, HEIGHT=1.0).
-    - Coordinates are normalized to fit the design space, ensuring compatibility with CAD-like workflows.
-    - The --version flag adds a polyhedral hash to track design iterations.
-    - Ensure NumPy is installed before running.
-    - For invalid inputs (e.g., mersenne_index outside 0-51, model not in choices), the script raises a ValueError.
-    """
-    parser = argparse.ArgumentParser(description="idutil: Industrial Design Utility for generating unique IDs using hashlet-inspired curve hashing.")
-    subparsers = parser.add_subparsers(dest='command', required=True)
-    
-    # Generate ID subcommand
-    gen_parser = subparsers.add_parser('generate', help='Generate unique design ID.')
-    gen_parser.add_argument('input', type=str, help='Input string (e.g., design name or specs).')
-    gen_parser.add_argument('--model', type=str, default='tetrahedron', choices=['tetrahedron', 'ipod'], help='Curve model for design.')
-    gen_parser.add_argument('--b_factor', type=float, default=1.0, help='B_SPIRAL factor for curve scaling.')
-    gen_parser.add_argument('--k_factor', type=float, default=1.0, help='K factor for z-axis modulation.')
-    gen_parser.add_argument('--mersenne_index', type=int, default=None, help='Mersenne index (0-51).')
-    gen_parser.add_argument('--use_kappa', action='store_true', help='Incorporate kappa_prime_n for curvature.')
-    gen_parser.add_argument('--n', type=int, default=12, help='n for kappa_prime_n.')
-    gen_parser.add_argument('--version', action='store_true', help='Include polyhedral hash for versioning.')
-    
-    # Kappa prime subcommand
-    kappa_parser = subparsers.add_parser('kappa', help='Compute kappa_prime_n for curvature.')
-    kappa_parser.add_argument('n', type=int, help='Input n (e.g., 2-104).')
-    
-    # Poly hash subcommand
-    poly_parser = subparsers.add_parser('polyhash', help='Compute poly_hash_256 for versioning.')
-    
-    args = parser.parse_args()
-    
-    if args.command == 'generate':
-        unique_id = generate_design_id(
-            args.input, args.mersenne_index, args.model, args.b_factor, args.k_factor,
-            args.use_kappa, args.n, args.version
-        )
-        print(f"Generated Design ID: {unique_id}")
-    elif args.command == 'kappa':
-        kappa = kappa_prime_n(args.n)
-        print(f"Kappa prime for n={args.n}: {kappa:.6f}")
-    elif args.command == 'polyhash':
-        hash_val = poly_hash_256()
-        print(f"Polyhedral Hash: {hash_val}")
-
-if __name__ == "__main__":
-    main()
