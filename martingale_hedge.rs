@@ -83,8 +83,7 @@ mod tests {
     fn test_curl_detect() {
         let mut martingale = Martingale::new();
         martingale.curl_detect(1.0, 0.5);  // Add node
-        martingale.curl_detect(0.2, 0.5);  // Delta = -0.8 < -0.618 → true
-        assert!(martingale.curl_detect(0.2, 0.5));
+        assert!(martingale.curl_detect(0.2, 0.5));  // Delta = -0.8 < -0.618 → true
     }
 
     #[test]
