@@ -43,18 +43,19 @@ except ImportError:
     SocketIO = None
 from web3 import Web3  # Ethereum hooks
 from solana.rpc.api import Client as SolanaClient  # Solana hooks
+import oracle  # Added import for oracle.py
 
-# Full Seraph class for entropy guardianship (fixed strict <0.69 prune, >=0.99 exit)
+# Full Seraph class for entropy guardianship (updated for film fidelity: says "Follow me" on high entropy instead of "You are the one")
 class Seraph:
     def test_entropy(self, data):
         """
-        Tests entropy on data; prunes low forks with apology, exits on perfect chaos.
+        Tests entropy on data; prunes low forks with apology, leads to Oracle on perfect chaos.
         Returns status string.
         """
         entropy = random.uniform(0, 1)  # Sim; replace with db.entropy_check(data) for real
         if entropy >= 0.99:
-            print("You are the one.")  # Exit: Allows low-entropy freedom
-            return "Exited", entropy
+            print("Follow me.")  # Updated: Leads to Oracle instead of declaring "You are the one"
+            return "Leading to Oracle", entropy
         elif entropy < 0.69:
             print("I'm sorry for this.")  # Remorseful prune
             return "Pruned", entropy
@@ -131,6 +132,7 @@ class BlocsymDB:
         for i in range(128):
             state[i] = i ^ 0x37
         for _ in range(ticks):
+            state = bytearray(state)
             for b in seed:
                 idx = b % 128
                 state[idx] ^= 0x53
