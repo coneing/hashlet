@@ -155,7 +155,7 @@ class BlocsymDB:
         Hidden ternary dojo: Train state privately, encrypt with ÿ-key.
         Now auto-called on ethics imbalances and low entropy recoveries.
         """
-        encrypted = bytes(b ^ ord(c) for b, c in zip(updates.encode(), ROCK_DOTS.encode() * (len(updates) // 3 + 1)))
+        encrypted = bytes(b ^ c for b, c in zip(updates.encode(), ROCK_DOTS.encode() * (len(updates) // 3 + 1)))
         self.cursor.execute("INSERT INTO states (hash, entropy, state) VALUES (?, ?, ?)",
                             (self.hash_tunnel(updates), 0.82, encrypted))
         self.conn.commit()
