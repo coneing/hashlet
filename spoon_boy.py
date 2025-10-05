@@ -24,6 +24,7 @@
 
 import random  # For sim blinks/levels
 import numpy as np  # For dojo floor warp
+import math  # Added for cos/sin in rotation
 from thought_curve import ThoughtCurve  # Integrate for dojo twist/graduate
 
 class SpoonBoy:
