@@ -9,14 +9,18 @@ import numpy as np
 import random # For sim deltas
 from thought_curve import ThoughtCurve # For spiral_tangent
 # Integrate gimbal.py for surface generation (Kappa grid mapping/knowing)
+# Copy of gimbal.py added to repo; import/extract functions
 import matplotlib.pyplot as plt # From gimbal
 from matplotlib.widgets import Slider, Button # From gimbal
 from mpl_toolkits.mplot3d import Axes3D # From gimbal
 import struct # From gimbal
 from scipy.spatial import Voronoi, Delaunay # From gimbal
-from tetras import fractal_tetra
-from nurks_surface import generate_nurks_surface, u_num, v_num
-from tessellations import tessellate_hex_mesh
+from tetras import fractal_tetra # From gimbal
+from nurks_surface import generate_nurks_surface, u_num, v_num # From gimbal
+from tessellations import tessellate_hex_mesh, build_mail # From gimbal
+# Global constants from gimbal
+v_num_cap = 10
+# Export function from gimbal
 def export_to_stl(triangles, filename, surface_id):
     """Export mesh to binary STL with embedded hash in header."""
     header = f"ID: {surface_id}".ljust(80, ' ').encode('utf-8')
@@ -75,14 +79,14 @@ class GhostHand:
         curl = delta_price < -0.618 # Fib check for left turn
         if curl:
             self.gimbal[1] += 0.1 # Pitch up
-            # Generate surface for grid knowing (integrate gimbal full function)
+            # Generate surface for grid knowing (integrate full gimbal)
             X, Y, Z, surface_id, X_cap, Y_cap, Z_cap, param_str = generate_nurks_surface(
                 ns_diam=self.ns_diam, sw_ne_diam=self.sw_ne_diam, nw_se_diam=self.nw_se_diam,
                 twist=self.twist, amplitude=self.amplitude, radii=self.radii, kappa=self.kappa,
                 height=self.height, inflection=self.inflection, morph=self.morph, hex_mode=self.hex_mode
             )
-            # Sim export (call full export_to_stl from gimbal)
-            triangles_main = tessellate_hex_mesh(X, Y, Z, u_num, v_num, param_str)  # Assuming tessellate_hex_mesh available
+            # Tessellate and export (full from gimbal)
+            triangles_main = tessellate_hex_mesh(X, Y, Z, u_num, v_num, param_str)
             triangles = triangles_main
             if self.hex_mode and X_cap is not None:
                 triangles_cap = tessellate_hex_mesh(X_cap, Y_cap, Z_cap, u_num, v_num_cap, param_str, is_cap=True)
@@ -95,7 +99,7 @@ class GhostHand:
     def extend(self, touch_point):
         """Extend ghost hand: reach and return action ('short' or 'long')."""
         tension = self.rod_whisper(random.uniform(0,1)) # Sim pressure
-        curl_dir = self.gimbal_flex(touch_point['price_delta']) # Calls surface gen/export on curl
+        curl_dir = self.gimbal_flex(touch_point['price_delta']) # Calls full surface gen/export on curl
         action = 'short' if curl_dir else 'long'
         self.price_history.append(touch_point)
         return action, tension
