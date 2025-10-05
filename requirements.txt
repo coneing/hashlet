@@ -1,8 +1,18 @@
-# Updated requirements.txt - Dependencies for Full Blossom Build
-# Includes original hashlet deps + new for hardware/optics/audio/IPFS integration.
-# Install with: pip install -r requirements.txt
-# Note: IPFS CLI separate (download from ipfs.io); GCC for reaper.c.
-# Licenses: Vary (e.g., NumPy BSD); repo overrides core to AGPL, new to Apache.
+# Copyright (C) 2025 Anonymous and Coneing
+# This file is part of Hashlet.
+#
+# Hashlet is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Hashlet is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with Hashlet.  If not, see <https://www.gnu.org/licenses/>.
 
 greenlet
 numpy
@@ -12,13 +22,15 @@ flask
 flask-socketio
 python-dotenv
 networkx
-RPi.GPIO  # Hardware interface
-smbus2  # I2C for DAC
-pillow  # PNG processing
-pygame  # Audio for cymatics
-pydub  # Audio stretching (needs ffmpeg: sudo apt install ffmpeg)
-random  # Built-in, but listed for clarity (shuffling)
-scipy
-mpmath
+RPi.GPIO
+smbus2
 pillow
+pygame
+paramiko  # for SSH tunneling
+speechrecognition  # for mic input
+pyaudio  # for audio modulation
+ray  # for LLM grids
+scipy  # for hybrid grader, vectors
+mpmath
 pytz
+# Note: whisper.cpp installed via brew/clone, not pip
