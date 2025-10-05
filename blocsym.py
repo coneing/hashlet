@@ -44,7 +44,7 @@ except ImportError:
 from web3 import Web3  # Ethereum hooks
 from solana.rpc.api import Client as SolanaClient  # Solana hooks
 
-# Full Seraph class for entropy guardianship (fixed strict <0.69 prune, 1.0 exit)
+# Full Seraph class for entropy guardianship (fixed strict <0.69 prune, >=0.99 exit)
 class Seraph:
     def test_entropy(self, data):
         """
@@ -52,7 +52,7 @@ class Seraph:
         Returns status string.
         """
         entropy = random.uniform(0, 1)  # Sim; replace with db.entropy_check(data) for real
-        if entropy >= 0.99:  # Approximate 1.0 for rarity (adjust to exact if needed)
+        if entropy >= 0.99:
             print("You are the one.")  # Exit: Allows low-entropy freedom
             return "Exited"
         elif entropy < 0.69:
