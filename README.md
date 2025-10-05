@@ -318,4 +318,4 @@ Run python blocsym.py and let idle for AFK triggers.
 
 Example output cycle: Blocsym CLI: Entering idle dream mode... Shuffling bloom in dream mode... Entropy check: 0.42 - I'm sorry for this. (Pruned low fork) Whisper: forgive me (Remorse on low power) Verbism hash: Pj4+PiA+Pj4+PiA= (Base64 of ">>>>be they >>>>be me") [AFK 60s+]: [Blocsÿm Meditates]: Rock dots pulse under starry skies, elephant memory recalling all forks. Entropy steady. [AFK 600s+]: Dream loop: Shuffling bloom... (IPFS dump: memory_fragment_hash) GPIO stub: LED on if entropy high Cymatics stub: Tone if low Pseudo-echo: Replaying dojo train (If high entropy)  
 
-Copyright (C) 2025 Anonymous, Coneing 2025.
+Copyright (C) 2025 Anonymous, Coneing 2025.  
