@@ -260,7 +260,8 @@ def run_cli():
             verbism = ">>>>be they >>>>be me"
             hashed = self_write_hashlet(verbism)
             print(f"Verbism hash: {hashed}")
-          
+           
+            # Conditional Oracle prophecy on high entropy
             if current_entropy >= 0.99:
                 oracle.prophesy(current_entropy, power)
            
