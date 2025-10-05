@@ -1,4 +1,4 @@
-// JITHook.sol - Cross-Chain Liquidity Hook for BlockChan
+// SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.0;
 import "@pancakeswap/v4-core/interfaces/IPoolManager.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -24,6 +24,9 @@ contract JITHook {
     event FeesClaimed(address indexed user, address token, uint256 amount);
     event XAUTBridged(address indexed user, uint256 amount);
     event GreedyLimitFilled(address indexed user, uint256 totalFilled, uint256 totalFees, uint256 martingaleFactor);
+    event LamportsBurn(uint amt); // For lamports burn on tangent
+    event RodTension(uint tension); // For rod_whisper integration
+
     constructor(
         address _poolManager,
         address _usdt,
@@ -123,5 +126,38 @@ contract JITHook {
     }
     function greedyLimitFill(uint256 totalFilled, uint256 totalFees, uint256 martingaleFactor) external {
         emit GreedyLimitFilled(msg.sender, totalFilled, totalFees, martingaleFactor);
+    }
+    function ladder_pivot(uint orderId, int delta) external {
+        // Enforce anti-clockwise (left turn only): delta < 0 triggers
+        if (delta < -int(fibRetrace)) {
+            Order[] storage ord = ladders[orderId];
+            bool tangent = tangent_detect(ord); // Stub for tangent check
+            if (tangent) {
+                tangent_invert(); // Replace phase_swap with tangent_invert for left-spiral only
+                burnLamports(ord[0].amount); // Burn on tangent
+            }
+            for (uint i = 0; i < ord.length; i++) {
+                ord[i].price = uint(int(ord[i].price) + delta); // Adjust for curl
+            }
+        }
+    }
+    function tangent_invert() internal {
+        // Stub for tangent inversion: flip buy/sell flags in ladder for left-spiral
+        emit LamportsBurn(1); // Emit on inversion
+    }
+    function martingale_hedge(uint size) external {
+        size = size * 2; // Double on down
+        uint hedge_size = size / 2; // Hedge half
+        // Stub for rod_whisper event: emit tension threshold
+        emit RodTension(hedge_size); // Emit for rod_whisper integration
+        emit LamportsBurn(hedge_size); // Burn on hedge
+    }
+    function burnLamports(uint amt) internal {
+        // Emit for rod_whisper integration (tension threshold)
+        emit LamportsBurn(amt);
+    }
+    function tangent_detect(Order[] memory ord) internal pure returns (bool) {
+        // Stub for tangent detection (use np.dot-like logic, but Solidity approx)
+        return ord.length > 1 && ord[0].price == ord[1].price; // Sim check
     }
 }
