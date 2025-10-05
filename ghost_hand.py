@@ -9,6 +9,7 @@
 import numpy as np
 import random  # For sim deltas
 from thought_curve import ThoughtCurve  # For spiral_tangent
+from ribit import ribit_generate  # Add import
 
 class GhostHand:
     def __init__(self, kappa_grid=16):
@@ -23,7 +24,9 @@ class GhostHand:
         tension = max(0, min(1, pressure))
         for i in range(len(self.rods)):
             self.rods[i] += tension * (1 - abs(i - kappa_grid // 2) / (kappa_grid // 2))  # Peak at center
-        return max(self.rods)  # Max tension for awareness
+        ribit_int, state, color = ribit_generate(str(tension))  # Map tension to RIBIT
+        print(f"RIBIT: {ribit_int}, State: {state}, Color: {color}")
+        return max(self.rods) # Max tension for awareness
     
     def gimbal_flex(self, delta_price):
         """Flex gimbal based on price curl (left-handed anti-clockwise only)."""
