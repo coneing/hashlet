@@ -2,7 +2,7 @@
 
 // Monitors bloom_state.bin for overflipped bits (>3 per bit).
 
-// Emails SHA-256 hash to olivia@anonmail.thing, then deletes file.
+// Prints SHA-256 hash to console and logs to reaper_log.txt, then deletes file.
 
 // AGPL-3.0 licensed. -- OliviaLynnArchive fork, 2025
 
@@ -18,14 +18,6 @@
 
 #include <openssl/sha.h>  // For SHA-256; link with -lcrypto
 
-#include <sys/socket.h>
-
-#include <netinet/in.h>
-
-#include <arpa/inet.h>
-
-#include <netdb.h>
-
 // Constants
 
 #define BLOOM_FILE "bloom_state.bin"  // Serialized bit array (128 bytes for 1024 bits)
@@ -36,13 +28,9 @@
 
 #define MAX_FLIPS 3
 
-#define SMTP_SERVER "anonmail.thing"  // Placeholder; use real SMTP
-
-#define SMTP_PORT 25
-
-#define RECIPIENT "olivia@anonmail.thing"
-
 #define FLIP_LOG "flip_log.txt"  // Side file for per-bit flip counts (one int per bit)
+
+#define REAPER_LOG "reaper_log.txt"  // Local log file for alerts instead of email
 
 // Pack/unpack helpers (Bloom array is [0/1] ints, but serialize as bits in bytes)
 
@@ -74,81 +62,23 @@ void unpack_bits(int *array, unsigned char *bytes, int size) {
 
 }
 
-// Simple SMTP email sender (basic; no auth, for anon setup)
+// Local alert logger (replaces SMTP; appends to reaper_log.txt)
 
-int send_email(const char *hash_hex) {
+int log_alert(const char *hash_hex) {
 
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    FILE *log = fopen(REAPER_LOG, "a");
 
-    if (sock < 0) return -1;
+    if (!log) {
 
-    struct sockaddr_in server;
-
-    server.sin_family = AF_INET;
-
-    server.sin_port = htons(SMTP_PORT);
-
-    struct hostent *host = gethostbyname(SMTP_SERVER);
-
-    if (!host) return -1;
-
-    memcpy(&server.sin_addr.s_addr, host->h_addr, host->h_length);
-
-    if (connect(sock, (struct sockaddr*)&server, sizeof(server)) < 0) {
-
-        close(sock);
+        fprintf(stderr, "Failed to open reaper_log.txt\n");
 
         return -1;
 
     }
 
-    // Simplified SMTP: HELO, MAIL FROM, RCPT TO, DATA with hash, QUIT
+    fprintf(log, "Subject: Bloom Reaper Alert\n\nOverflipped bits detected. Hash: %s\n\n", hash_hex);
 
-    char buffer[1024];
-
-    // HELO
-
-    sprintf(buffer, "HELO localhost\r\n");
-
-    send(sock, buffer, strlen(buffer), 0);
-
-    recv(sock, buffer, sizeof(buffer), 0);  // Ignore response
-
-    // MAIL FROM (dummy)
-
-    sprintf(buffer, "MAIL FROM: <reaper@blockchan>\r\n");
-
-    send(sock, buffer, strlen(buffer), 0);
-
-    recv(sock, buffer, sizeof(buffer), 0);
-
-    // RCPT TO
-
-    sprintf(buffer, "RCPT TO: <%s>\r\n", RECIPIENT);
-
-    send(sock, buffer, strlen(buffer), 0);
-
-    recv(sock, buffer, sizeof(buffer), 0);
-
-    // DATA
-
-    sprintf(buffer, "DATA\r\n");
-
-    send(sock, buffer, strlen(buffer), 0);
-
-    recv(sock, buffer, sizeof(buffer), 0);
-
-    sprintf(buffer, "Subject: Bloom Reaper Alert\r\n\r\nOverflipped bits detected. Hash: %s\r\n.\r\n", hash_hex);
-
-    send(sock, buffer, strlen(buffer), 0);
-
-    recv(sock, buffer, sizeof(buffer), 0);
-
-    sprintf(buffer, "QUIT\r\n");
-
-    send(sock, buffer, strlen(buffer), 0);
-
-    close(sock);
+    fclose(log);
 
     return 0;
 
@@ -284,15 +214,15 @@ int main() {
 
     sprintf(state_str, "overflip at bit %d. Hash: %s", overflip_idx, hash_hex);
 
-    // Email alert
+    // Log alert locally
 
-    if (send_email(hash_hex) == 0) {
+    if (log_alert(hash_hex) == 0) {
 
-        printf("Reaper: Alert sent for %s\n", state_str);
+        printf("Reaper: Alert logged for %s\n", state_str);
 
     } else {
 
-        fprintf(stderr, "Reaper: Email failed.\n");
+        fprintf(stderr, "Reaper: Logging failed.\n");
 
     }
 
