@@ -26,16 +26,19 @@ import numpy as np # For dojo floor warp
 from thought_curve import ThoughtCurve # Integrate for dojo twist/graduate
 import math # Added for cos/sin in rotation
 
-# Stub for rod_whisper (from ghost_hand.py or blocsym.py; integrate tension from rods)
+# Stub for rod_whisper (from ghost_hand.py or blocsym; integrate tension from rods)
 def rod_whisper(pressure):
     """Normalize blink pressure to tension (0-1) for rod memory."""
-    return max(0, min(1, pressure))  # Sim; replace with GPIO or real input
+    return max(0, min(1, pressure))  # Sim; replace with GPIO or real
 
 # Stub for ladder_hedge (from ghost_hand.py; for phase-like inversion without swap)
 def ladder_hedge():
     """Simulate martingale unwind on spiral."""
     print("Ladder hedged: unwind (phase-like inversion)")
     return "unwind"
+
+# Add RIBIT for color state mapping (from ribit.py)
+from ribit import ribit_generate
 
 class SpoonBoy:
     def __init__(self, max_neg=-3):
@@ -53,6 +56,9 @@ class SpoonBoy:
         self.current_level = level
         ramp = self.levels[level] if level >= 0 else f"Negative dip: {level}"
         print(f"Spoon bend at level {level}: {ramp}")
+        # Add RIBIT mapping for color state on level
+        ribit_int, state, color = ribit_generate(str(level))
+        print(f"Bend RIBIT: {ribit_int}, State: {state}, Color: {color}")
         if level == 4: # Spiral: twist dojo floor
             self.twist_dojo_floor()
         return ramp
