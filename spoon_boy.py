@@ -26,15 +26,16 @@ import numpy as np # For dojo floor warp
 from thought_curve import ThoughtCurve # Integrate for dojo twist/graduate
 import math # Added for cos/sin in rotation
 
-# Stub for rod_whisper from ghost_hand (for tension integration; assume import in full repo)
+# Stub for rod_whisper (from ghost_hand.py or blocsym.py; integrate tension from rods)
 def rod_whisper(pressure):
-    """Stub for rod whisper: Normalize pressure to tension (0-1)."""
-    return max(0, min(1, pressure))  # Replace with real from ghost_hand.py
+    """Normalize blink pressure to tension (0-1) for rod memory."""
+    return max(0, min(1, pressure))  # Sim; replace with GPIO or real input
 
-# Stub for ladder_hedge (for phase-like inversion on spiral; assume from ghost_hand)
+# Stub for ladder_hedge (from ghost_hand.py; for phase-like inversion without swap)
 def ladder_hedge():
-    """Stub for ladder hedge: Return 'unwind' or similar."""
-    return "unwind"  # Replace with real function
+    """Simulate martingale unwind on spiral."""
+    print("Ladder hedged: unwind (phase-like inversion)")
+    return "unwind"
 
 class SpoonBoy:
     def __init__(self, max_neg=-3):
@@ -47,8 +48,8 @@ class SpoonBoy:
     def bend_with_blink(self, blink_dur):
         """Bend spoon with blink duration: slow = low level, fast = high level (clip at max_neg)."""
         tension = rod_whisper(blink_dur)  # Use rod_whisper instead of random.uniform
-        level = max(self.current_level, int(tension * 5))  # Anti-clockwise: only increase level
-        level = max(self.max_neg, min(4, level)) # Clip to 0-4, floor negative
+        level = max(self.current_level, int(tension * 5))  # Anti-clockwise constraint: only increase (no right turns)
+        level = max(self.max_neg, min(4, level)) # Clip to max_neg to 4
         self.current_level = level
         ramp = self.levels[level] if level >= 0 else f"Negative dip: {level}"
         print(f"Spoon bend at level {level}: {ramp}")
@@ -64,7 +65,7 @@ class SpoonBoy:
         warped_spiral = np.dot(self.curve.spiral, rotation_matrix)
         print(f"Dojo floor twisted - spiral warped to: {warped_spiral}")
         self.curve.graduate() # Trigger graduation on twist
-        ladder_hedge()  # Call ladder_hedge on spiral for phase-like inversion
+        ladder_hedge()  # Link to ladder_hedge for phase-like inversion without swap
    
     def integrate_curve(self, curve_level):
         """Integrate with thought_curve: bend, ramp if in dojo."""
