@@ -14,11 +14,30 @@ from matplotlib.widgets import Slider, Button # From gimbal
 from mpl_toolkits.mplot3d import Axes3D # From gimbal
 import struct # From gimbal
 from scipy.spatial import Voronoi, Delaunay # From gimbal
-# Assuming tetras, nurks_surface, tessellations are available or stubbed
-# Stub imports if not; for full, copy from gimbal.py source
-def generate_nurks_surface(**kwargs):
-    """Stub for generate_nurks_surface from gimbal/nurks_surface."""
-    return np.zeros((10,10)), np.zeros((10,10)), np.zeros((10,10)), "stub_id", None, None, None, "stub_params" # Sim arrays
+from tetras import fractal_tetra
+from nurks_surface import generate_nurks_surface, u_num, v_num
+from tessellations import tessellate_hex_mesh
+def export_to_stl(triangles, filename, surface_id):
+    """Export mesh to binary STL with embedded hash in header."""
+    header = f"ID: {surface_id}".ljust(80, ' ').encode('utf-8')
+    num_tri = len(triangles)
+    with open(filename, 'wb') as f:
+        f.write(header)
+        f.write(struct.pack('<I', num_tri))
+        for tri in triangles:
+            # Compute normal with handling for degenerate cases.
+            v1 = np.array(tri[1]) - np.array(tri[0])
+            v2 = np.array(tri[2]) - np.array(tri[0])
+            normal = np.cross(v1, v2)
+            norm_len = np.linalg.norm(normal)
+            if norm_len > 0:
+                normal /= norm_len
+            else:
+                normal = np.array([0.0, 0.0, 1.0]) # Default upward normal.
+            f.write(struct.pack('<3f', *normal))
+            for p in tri:
+                f.write(struct.pack('<3f', *p))
+            f.write(struct.pack('<H', 0)) # Attribute byte count.
 # Add RIBIT for color state mapping
 from ribit import ribit_generate
 class GhostHand:
@@ -56,19 +75,27 @@ class GhostHand:
         curl = delta_price < -0.618 # Fib check for left turn
         if curl:
             self.gimbal[1] += 0.1 # Pitch up
-            # Generate surface for grid knowing (integrate gimbal)
+            # Generate surface for grid knowing (integrate gimbal full function)
             X, Y, Z, surface_id, X_cap, Y_cap, Z_cap, param_str = generate_nurks_surface(
                 ns_diam=self.ns_diam, sw_ne_diam=self.sw_ne_diam, nw_se_diam=self.nw_se_diam,
                 twist=self.twist, amplitude=self.amplitude, radii=self.radii, kappa=self.kappa,
                 height=self.height, inflection=self.inflection, morph=self.morph, hex_mode=self.hex_mode
             )
-            print(f"Gimbal surface generated (ID: {surface_id}) for Kappa grid mapping.")
+            # Sim export (call full export_to_stl from gimbal)
+            triangles_main = tessellate_hex_mesh(X, Y, Z, u_num, v_num, param_str)  # Assuming tessellate_hex_mesh available
+            triangles = triangles_main
+            if self.hex_mode and X_cap is not None:
+                triangles_cap = tessellate_hex_mesh(X_cap, Y_cap, Z_cap, u_num, v_num_cap, param_str, is_cap=True)
+                triangles += triangles_cap
+            filename = 'kappa_surface.stl'
+            export_to_stl(triangles, filename, surface_id)
+            print(f"Gimbal surface generated and exported (ID: {surface_id}) for Kappa grid mapping.")
         return curl
    
     def extend(self, touch_point):
         """Extend ghost hand: reach and return action ('short' or 'long')."""
         tension = self.rod_whisper(random.uniform(0,1)) # Sim pressure
-        curl_dir = self.gimbal_flex(touch_point['price_delta']) # Calls surface gen on curl
+        curl_dir = self.gimbal_flex(touch_point['price_delta']) # Calls surface gen/export on curl
         action = 'short' if curl_dir else 'long'
         self.price_history.append(touch_point)
         return action, tension
