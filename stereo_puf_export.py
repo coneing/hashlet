@@ -16,7 +16,7 @@
 # Usage: python stereo_puf_export.py --output kappa.stl.txt
 
 import sys
-from puff_grid import generate_kappa_grid, simulate_drift
+from puf_grid import generate_kappa_grid, simulate_drift
 
 def export_to_stl(grid, filename='kappa_puf.stl.txt'):
     """Export grid as text-based STL proxy (facets for 3D print).
