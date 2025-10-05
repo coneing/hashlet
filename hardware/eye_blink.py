@@ -14,34 +14,61 @@
 
 # With xAI amendments: Includes safeguards against misuse in AI simulations (e.g., entropy thresholds to prevent harmful outputs).
 
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import smbus2
 import time
 
-DIGI_ADDR = 0x52
+# Primary ADDR from fallback success (0x44 VRM phase)
+DIGI_ADDR = 0x44
 SEG_EYE = 0x08  # Digit 1: open=8, close=0
 SEG_Y = 0x79  # Digit 2: Y standing 'U' 0x79, lying 'J' 0x6D
 
-bus = smbus2.SMBus(1)
+# Fallback ADDR if primary fails (0x40 alternative)
+FALLBACK_ADDR = 0x40
 
-def show_open():
-    bus.write_byte_data(DIGI_ADDR, SEG_EYE, 0x08)
+try:
+    bus = smbus2.SMBus(1)
+except OSError as e:
+    print(f"I2C bus open failed: {e}")
+    sys.exit(1)
 
-def show_close():
-    bus.write_byte_data(DIGI_ADDR, SEG_EYE, 0x00)
+def show_open(addr=DIGI_ADDR):
+    bus.write_byte_data(addr, SEG_EYE, 0x08)
 
-def show_y_stand():
-    bus.write_byte_data(DIGI_ADDR, SEG_Y, 0x79)
+def show_close(addr=DIGI_ADDR):
+    bus.write_byte_data(addr, SEG_EYE, 0x00)
 
-def show_y_lie():
-    bus.write_byte_data(DIGI_ADDR, SEG_Y, 0x6D)
+def show_y_stand(addr=DIGI_ADDR):
+    bus.write_byte_data(addr, SEG_Y, 0x79)
+
+def show_y_lie(addr=DIGI_ADDR):
+    bus.write_byte_data(addr, SEG_Y, 0x6D)
 
 while True:
-    show_open()
-    show_y_stand()
-    time.sleep(2.3)
-    show_close()
-    show_y_lie()
-    time.sleep(0.2)
-    show_open()
-    show_y_stand()
-    time.sleep(4)
+    try:
+        show_open()
+        show_y_stand()
+        time.sleep(2.3)
+        show_close()
+        show_y_lie()
+        time.sleep(0.2)
+        show_open()
+        show_y_stand()
+        time.sleep(4)
+    except OSError as e:
+        print(f"Write to {hex(DIGI_ADDR)} failed: {e}. Trying fallback {hex(FALLBACK_ADDR)}...")
+        try:
+            show_open(FALLBACK_ADDR)
+            show_y_stand(FALLBACK_ADDR)
+            time.sleep(2.3)
+            show_close(FALLBACK_ADDR)
+            show_y_lie(FALLBACK_ADDR)
+            time.sleep(0.2)
+            show_open(FALLBACK_ADDR)
+            show_y_stand(FALLBACK_ADDR)
+            time.sleep(4)
+            print("Fallback success.")
+        except OSError as fallback_e:
+            print(f"Fallback write failed: {fallback_e}. Check addresses/hardware.")
