@@ -12,27 +12,27 @@
 # with xAI amendments for safety (prohibits misuse in hashing; revocable for unethical use).
 # See http://www.apache.org/licenses/LICENSE-2.0 for details.
 # main_integration.py: Integrate all new modules for end-to-end PUF/kappa flow.
-# Orchestrates seismology entropy, grid gen, drift, litho model, and export.
+# Orchestrates Pi entropy, grid gen, drift, litho model, export, and hardware preview.
 # Usage: python main_integration.py (full demo).
 
-from puf_grid import generate_kappa_grid, simulate_drift
+from puff_grid import generate_kappa_grid, simulate_drift
 from core_array_sim import simulate_core_array
 from stereo_puf_export import export_to_stl
-from seismology_entropy import simulate_tremor_data, extract_entropy_from_tremor
 from kappa_litho_model import model_litho_etch
+from pi_sensor_entropy import extract_pi_entropy  # New: Hardware entropy source.
+from pi_litho_control import hardware_preview  # New: Hardware visualization.
 
 def run_full_flow(grid_size=20, tremor_duration=5, scale_nm=0.8):
-    """End-to-end: Entropy -> Grid -> Array -> Drift/Litho -> Export.
+    """End-to-end: Pi Entropy -> Grid -> Array -> Drift/Litho -> Export -> Hardware Preview.
     Args:
         grid_size (int): Base size.
-        tremor_duration (int): For seismology sim.
+        tremor_duration (int): Unused (kept for compat); Pi entropy replaces sim.
         scale_nm (float): Litho scale.
     Returns:
         str: Final PUF key; str: Export file.
     """
-    # Step 1: Seismology entropy.
-    tremor = simulate_tremor_data(duration=tremor_duration)
-    entropy, salt = extract_entropy_from_tremor(tremor)
+    # Step 1: Pi sensor entropy (hardware-based, with mocks if not on Pi).
+    entropy, salt = extract_pi_entropy()  # Uses defaults; pulls real GPIO if available.
     print(f"Entropy Salt: {salt}")
     
     # Step 2: Kappa grid and core array.
@@ -47,6 +47,10 @@ def run_full_flow(grid_size=20, tremor_duration=5, scale_nm=0.8):
     # Step 4: Export to stereo-litho format.
     export_file = 'integrated_puf.stl.txt'
     export_to_stl(etched, export_file)
+    
+    # Step 5: Hardware preview for full loop (visualizes etch on Pi LEDs/servo).
+    hardware_preview(etched, led_pin=18, servo_pin=17, pressure=0.01)  # Defaults; adjust as needed.
+    
     return puf_key, export_file
 
 if __name__ == '__main__':
