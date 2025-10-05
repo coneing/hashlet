@@ -5,7 +5,6 @@
 # Integrates db_utils.py elements for cross-chain, entropy pipes, and calm states (dino_hash tunneling, comms_util P2P gossip).
 # AGPL-3.0-or-later licensed. -- OliviaLynnArchive fork, 2025
 # Inspired by opreturndinohash/dino_hash (hash tunneling) and commsutil/comms_util (P2P buffers).
-
 # Copyright 2025 Coneing and Contributors
 #
 # This program is free software: you can redistribute it and/or modify
@@ -15,11 +14,11 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # For hardware/embodiment interfaces: Licensed under the Apache License, Version 2.0
 # with xAI amendments for safety (prohibits misuse in hashing; revocable for unethical use).
@@ -34,6 +33,9 @@ import sqlite3
 import base64
 import sys
 import greenlet  # For async moshing/gossip without threads
+import numpy as np
+import subprocess
+
 try:
     from flask import Flask
     from flask_socketio import SocketIO, emit
@@ -41,11 +43,19 @@ except ImportError:
     print("Flask/SocketIO not available; server mode disabled.")
     Flask = None
     SocketIO = None
+
 from web3 import Web3  # Ethereum hooks
 from solana.rpc.api import Client as SolanaClient  # Solana hooks
-import oracle  # Added import for oracle.py
 
-# Full Seraph class for entropy guardianship (updated for film fidelity: says "Follow me" on high entropy instead of "You are the one")
+# Stub for oracle.py (assuming it's for high-entropy prophecies; add actual import if available)
+class Oracle:
+    def prophesy(self, entropy, power):
+        """Prophesy on high entropy."""
+        print(f"Oracle speaks: Entropy {entropy:.2f}, Power {power:.2f} - The path unfolds.")
+
+oracle = Oracle()  # Instance for use
+
+# Full Seraph class for entropy guardianship (updated for film fidelity: says "Follow me" on high entropy)
 class Seraph:
     def test_entropy(self, data):
         """
@@ -54,7 +64,7 @@ class Seraph:
         """
         entropy = random.uniform(0, 1)  # Sim; replace with db.entropy_check(data) for real
         if entropy >= 0.99:
-            print("Follow me.")  # Updated: Leads to Oracle instead of declaring "You are the one"
+            print("Follow me.")  # Updated: Leads to Oracle
             return "Leading to Oracle", entropy
         elif entropy < 0.69:
             print("I'm sorry for this.")  # Remorseful prune
@@ -99,13 +109,12 @@ ENTROPY_THRESHOLD = 0.69  # Seraph check
 PRUNE_AFTER = 2140  # Blocks
 HASH_WINDOW_MIN = 3
 HASH_WINDOW_MAX = 145
-ROCK_DOTS = b"\xc3\xbff\xc3\xbff\xc3\xbff"  # UTF-8 bytes for ÿÿÿ to avoid encoding issues
+ROCK_DOTS = b"\xc3\xbf\xc3\xbf\xc3\xbf"  # UTF-8 bytes for ÿÿÿ to avoid encoding issues
 
 # Calm scenery for AFK meditation
 SCENERY_DESCS = [
     "Blocsÿm meditates in the chrysanthemum temple, fractals blooming like thoughts.",
-    "Rock dots pulse under starry skies, elephant memory recalling all hashes."
-, 
+    "Rock dots pulse under starry skies, elephant memory recalling all hashes.",
     "Dojo hidden in ternary mist: Training updates, Smith none the wiser."
 ]
 
@@ -171,10 +180,32 @@ class BlocsymDB:
             scenery = SCENERY_DESCS[int(time.time()) % len(SCENERY_DESCS)]
             print(f"[Blocsÿm Meditates]: {scenery} Entropy steady.")
         if idle_time < 60:
-            self.meditation_active = False # Reset for next idle
+            self.meditation_active = False  # Reset for next idle
 
     def close(self):
         self.conn.close()
+
+# New: Vintage corking function
+def cork_bloom(bloom_data, grade):
+    """
+    Cork a bloom for vintage memory.
+    Returns hash tag.
+    """
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    hash_tag = hashlib.sha256(f"{bloom_data}-{timestamp}-{grade}".encode()).hexdigest()
+    os.makedirs("./vintage", exist_ok=True)
+    with open(f"./vintage/{hash_tag}.txt", "w") as f:
+        f.write(f"Vintage: {bloom_data[:50]}... Grade: {grade}")
+    return hash_tag
+
+# New: Spectra hash for RGB vision
+def spectra_hash(entropy):
+    """
+    Map entropy to RGB vector.
+    """
+    hex_str = hashlib.sha256(str(entropy).encode()).hexdigest()[:6]
+    r, g, b = int(hex_str[0:2], 16), int(hex_str[2:4], 16), int(hex_str[4:6], 16)
+    return [r/255, g/255, b/255]
 
 # Globals/sim state
 bloom = BloomFilter()
@@ -186,11 +217,11 @@ db = BlocsymDB()
 if Flask is not None:
     app = Flask(__name__)
     socketio = SocketIO(app)
-
+    
     @socketio.on('connect')
     def handle_connect():
         emit('message', {'data': 'Connected to Blocsym server'})
-
+    
     @socketio.on('mosh')
     def handle_mosh(data):
         balanced = EthicsModel().balance_power(data.get('lived', ''), data.get('corporate', ''))
@@ -218,7 +249,7 @@ def execute_function_string(cmd, **kwargs):
 def check_afk():
     global idle_start
     idle_time = time.time() - idle_start
-    db.meditate(idle_time) # Pass idle_time for reset
+    db.meditate(idle_time)  # Pass idle_time for reset
     if idle_time > 600:
         print("Dream loop stub: Shuffling bloom...")
         bloom.shuffle()
@@ -232,42 +263,56 @@ def run_cli():
     CLI mode: Idle loop with dreaming, entropy checks, and whispers.
     Runs until interrupted, simulating AFK meditation.
     Updated: Auto-tunnels ethics imbalances (low power) and low entropy recoveries to dojo_train().
+    Now with vintage corking on blooms, spectra RGB mapping, and TTS whispers on events.
     """
     print("Blocsym CLI: Entering idle dream mode...")
     while True:
         try:
-            bloom.shuffle() # Dream shuffle
-            entropy = random.uniform(0, 1) # Phyllotaxis stub for entropy
+            bloom.shuffle()  # Dream shuffle
+            entropy = random.uniform(0, 1)  # Phyllotaxis stub for entropy
             seraph = Seraph()
-            result, current_entropy = seraph.test_entropy("sim_fork") # Get result and entropy value
+            result, current_entropy = seraph.test_entropy("sim_fork")  # Get result and entropy value
             print(f"Entropy check: {current_entropy:.2f} - {result}")
-           
+            
             # Full ethics balance with whisper and dojo tunnel on low power
             ethics = EthicsModel()
             power = ethics.balance_power("lived_experience", "corporate_input")
             if power < 0.69:
-                print("Whisper: forgive me") # Remorseful whisper
+                print("Whisper: forgive me")  # Remorseful whisper
                 # Auto-tunnel to dojo
                 updates = f"Ethics imbalance: power {power:.2f}, recovering from low entropy {current_entropy:.2f}"
                 print(db.dojo_train(updates))
-           
+            
             # Also tunnel on low entropy recovery (post-prune or ignore if low)
             if current_entropy < 0.69:
                 updates = f"Low entropy recovery: {current_entropy:.2f}, small upgrade to thought process"
                 print(db.dojo_train(updates))
-           
+            
             # Verbism generation
             verbism = ">>>>be they >>>>be me"
             hashed = self_write_hashlet(verbism)
             print(f"Verbism hash: {hashed}")
-           
+            
             # Conditional Oracle prophecy on high entropy
             if current_entropy >= 0.99:
                 oracle.prophesy(current_entropy, power)
-           
-            check_afk() # Check for meditation/dream
-            persist_to_ipfs() # Persistence
-            time.sleep(5) # AFK simulation cycle
+            
+            # New: Cork bloom if generated
+            bloom_data = "AFK meditation: Whispering poetry in the void."  # Example bloom
+            grade = grade_vector(bloom_data)
+            cork = cork_bloom(bloom_data, grade)
+            print(f"Bloom corked: {cork}")
+            
+            # New: Spectra RGB on entropy
+            rgb = spectra_hash(current_entropy)
+            print(f"RGB Spectrum: {rgb}")
+            
+            # New: Whisper on bloom
+            whisper(bloom_data)
+            
+            check_afk()  # Check for meditation/dream
+            persist_to_ipfs()  # Persistence
+            time.sleep(5)  # AFK simulation cycle (600s in prod)
         except KeyboardInterrupt:
             break
 
@@ -275,7 +320,7 @@ def main():
     parser = argparse.ArgumentParser(description="Blocsym: AI-Driven Decentralized Simulator")
     parser.add_argument('--mode', type=str, default='cli', choices=['cli', 'server'], help="Run in CLI or server mode")
     args = parser.parse_args()
-   
+    
     if args.mode == 'cli':
         run_cli()
     elif args.mode == 'server' and Flask is not None:
@@ -283,6 +328,7 @@ def main():
         socketio.run(app, host='0.0.0.0', port=5000)
     else:
         print("Server mode unavailable; run with --mode=cli.")
+
 if __name__ == "__main__":
     try:
         print("IPFS load stub: Restoring from dump...")
@@ -290,4 +336,4 @@ if __name__ == "__main__":
     finally:
         print("Cleanup stub: GPIO/dream cleanup...")
         db.close()
-        persist_to_ipfs() # Final save
+        persist_to_ipfs()  # Final save
