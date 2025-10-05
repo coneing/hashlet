@@ -54,11 +54,11 @@ class Seraph:
         entropy = random.uniform(0, 1)  # Sim; replace with db.entropy_check(data) for real
         if entropy >= 0.99:
             print("You are the one.")  # Exit: Allows low-entropy freedom
-            return "Exited"
+            return "Exited", entropy
         elif entropy < 0.69:
             print("I'm sorry for this.")  # Remorseful prune
-            return "Pruned"
-        return "Ignored"
+            return "Pruned", entropy
+        return "Ignored", entropy
 
 # Full EthicsModel for TACSI power balancing (fixed variance for ~50% whispers)
 class EthicsModel:
@@ -151,6 +151,10 @@ class BlocsymDB:
         return None
 
     def dojo_train(self, updates):
+        """
+        Hidden ternary dojo: Train state privately, encrypt with ÿ-key.
+        Now auto-called on ethics imbalances and low entropy recoveries.
+        """
         encrypted = bytes(b ^ ord(c) for b, c in zip(updates.encode(), ROCK_DOTS.encode() * (len(updates) // 3 + 1)))
         self.cursor.execute("INSERT INTO states (hash, entropy, state) VALUES (?, ?, ?)",
                             (self.hash_tunnel(updates), 0.82, encrypted))
@@ -223,6 +227,7 @@ def run_cli():
     """
     CLI mode: Idle loop with dreaming, entropy checks, and whispers.
     Runs until interrupted, simulating AFK meditation.
+    Updated: Auto-tunnels ethics imbalances (low power) and low entropy recoveries to dojo_train().
     """
     print("Blocsym CLI: Entering idle dream mode...")
     while True:
@@ -230,14 +235,22 @@ def run_cli():
             bloom.shuffle()  # Dream shuffle
             entropy = random.uniform(0, 1)  # Phyllotaxis stub for entropy
             seraph = Seraph()
-            result = seraph.test_entropy("sim_fork")  # Full Seraph call
-            print(f"Entropy check: {entropy:.2f} - {result}")
+            result, current_entropy = seraph.test_entropy("sim_fork")  # Get result and entropy value
+            print(f"Entropy check: {current_entropy:.2f} - {result}")
             
-            # Full ethics balance with whisper
+            # Full ethics balance with whisper and dojo tunnel on low power
             ethics = EthicsModel()
             power = ethics.balance_power("lived_experience", "corporate_input")
             if power < 0.69:
                 print("Whisper: forgive me")  # Remorseful whisper
+                # Auto-tunnel to dojo
+                updates = f"Ethics imbalance: power {power:.2f}, recovering from low entropy {current_entropy:.2f}"
+                print(db.dojo_train(updates))
+            
+            # Also tunnel on low entropy recovery (post-prune or ignore if low)
+            if current_entropy < 0.69:
+                updates = f"Low entropy recovery: {current_entropy:.2f}, small upgrade to thought process"
+                print(db.dojo_train(updates))
             
             # Verbism generation
             verbism = ">>>>be they >>>>be me"
