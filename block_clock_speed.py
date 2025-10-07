@@ -32,13 +32,36 @@
 # limitations under the License.
 # SPDX-License-Identifier: Apache-2.0
 
-
 import hashlib
 import time
 import numpy as np
-from kappa_wise import kappa_norm  # scales interval by factor
+import mpmath
+mpmath.mp.dps = 19
+from kappawise import murmur32, kappa_coord
+from wise_transforms import bitwise_transform, hexwise_transform, hashwise_transform
+from hybrid import HybridGreenText, parse_green_perl, scale_curvature
+# From hybrids (cython as py, perl mock)
+def compute_phi_kappa(points):
+    n = points.shape[0]
+    if n < 3:
+        return 0.0
+    l = points[:, 0]
+    h = points[:, 1]
+    dl = np.diff(l)
+    dh = np.diff(h)
+    d2l = np.diff(dl)
+    d2h = np.diff(dh)
+    kappa = np.zeros(n-2)
+    phi = float(mpmath.phi)
+    for i in range(n-2):
+        denom = (dl[i]**2 + dh[i]**2)**1.5
+        if denom == 0:
+            kappa[i] = 0.0
+        else:
+            kappa[i] = abs(dl[i] * d2h[i] - dh[i] * d2l[i]) / denom * phi
+    return np.mean(kappa)
 
-# Hashloop func
+# Hashloop
 def hashloop(start='0', salt=''):
     nonce = start
     while True:
@@ -47,39 +70,58 @@ def hashloop(start='0', salt=''):
         yield hash_val
         nonce = hash_val
 
-# Mock gossip: in real, replace with peer net
+# Mock gossip
 def get_A():
-    return 'mock_prev_hash'  # from gossip
+    return 'mock_prev_hash'
 
 def get_C():
-    time.sleep(0.1)  # simulate wait
-    return 'mock_next_hash'  # from gossip
+    time.sleep(0.1)
+    return 'mock_next_hash'
 
-# Main loop with gossip chronology
-def block_clock_speed(salt='', lag=0):
+# Main with wise/hybrids
+def block_clock_speed(salt='', lag=0, user_id='blossom'):
     generator = hashloop(salt=salt)
     latencies = []
+    coords_accum = []  # For points: use x,y; z for later
+    kappas = []  # Accum kappa means
+    hgt = HybridGreenText()
+    tick_i = 0
     while True:
         A = get_A()
         B = next(generator)
         C = get_C()
         final_input = A + B + C
         final_hash = hashlib.sha256(final_input.encode()).hexdigest()
-        # Send final to gossip: print for now
-        print(f'Tick: {final_hash}')
-        # Measure latency, add to vector
+        # Wise braid
+        bit_out = bitwise_transform(final_hash)
+        hex_out = hexwise_transform(final_hash)
+        hash_out, ent = hashwise_transform(final_hash)
+        hybrid_strand = f"{bit_out}:{hex_out}:{hash_out}"
+        # Kappa coord
+        coord = kappa_coord(user_id, tick_i)
+        coords_accum.append(coord[:2])  # x,y as l,h
+        if len(coords_accum) > 2:
+            points = np.array(coords_accum)
+            kappa_mean = compute_phi_kappa(points)
+            kappas.append(kappa_mean)
+            scaled = hgt.scale_curvature(np.array(kappas))
+            interval = scaled[-1] / 10.0  # Norm to sec
+        else:
+            interval = 0.1
+        # Green log
+        log_text = f"> Tick {tick_i}: {hybrid_strand[:16]}... at {coord} (ent {ent})"
+        parsed = hgt.parse_green_perl(log_text)
+        print(parsed or log_text)
+        # Latency
         start = time.time()
-        # Mock receipt
         receipt_time = time.time() - start + np.random.uniform(0.05, 0.15)
         latencies.append(receipt_time)
         if len(latencies) > 10:
             latencies = latencies[-10:]
         median_c = np.median(latencies)
         print(f'Median c: {median_c}')
-        # Kappa scale next interval
-        interval = kappa_norm(0.1, median_c * 1000)  # ms to factor
-        time.sleep(interval)
+        time.sleep(max(interval, 0.05))  # Min sleep
+        tick_i += 1
 
-# Run
 if __name__ == '__main__':
     block_clock_speed(salt='blossom')
