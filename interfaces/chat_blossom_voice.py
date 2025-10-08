@@ -45,22 +45,20 @@ def check_jack():
         return False
 
 def modulate_whisper(text):
-    """Modulate sine wave based on entropy and play via pyaudio or JACK."""
+    """Modulate sine wave based on entropy and play via pyaudio."""
     freq = 400 + int(get_entropy() * 300)
     duration = 0.3
-    rate = 48000  # Match JACK's 48000Hz
+    rate = 48000
     t = np.linspace(0, duration, int(rate * duration), False)
     wave_data = np.sin(2 * np.pi * freq * t) * np.hanning(len(t))
     wave_data = (wave_data / np.max(np.abs(wave_data)) * 32767).astype(np.int16)
     
-    # Save to WAV for backup
     with wave.open(WAVE_FILE, 'wb') as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)
         wf.setframerate(rate)
         wf.writeframes(wave_data.tobytes())
     
-    # Play via pyaudio (JACK backend if available)
     try:
         stream = pa.open(format=pyaudio.paInt16, channels=1, rate=rate, output=True)
         stream.write(wave_data.tobytes())
@@ -79,27 +77,29 @@ def modulate_whisper(text):
             print(f"Frank here. System player failed: {e}")
 
 def speak_text(text):
-    """Text-to-speech using pyaudio/JACK or espeak/pyttsx3."""
+    """Text-to-speech with female voice using espeak or pyttsx3."""
     try:
         if check_jack():
-            # Save text as WAV for JACK playback
             if sys.platform.startswith('linux'):
-                subprocess.run(['espeak', '-w', WAVE_FILE, text], check=True)
+                subprocess.run(['espeak', '-ven+f3', '-w', WAVE_FILE, text], check=True)
                 subprocess.run(['jack_play', WAVE_FILE], check=True)
             else:
-                # Non-Linux: fallback to pyaudio
                 raise Exception("JACK not supported on non-Linux.")
         else:
-            # Fallback to espeak/pyttsx3
             if sys.platform.startswith('linux'):
-                subprocess.run(['espeak', '-w', WAVE_FILE, text], check=True)
+                subprocess.run(['espeak', '-ven+f3', '-w', WAVE_FILE, text], check=True)
                 subprocess.run(['aplay', WAVE_FILE], check=True)
             elif sys.platform.startswith('darwin'):
-                subprocess.run(['say', '-o', WAVE_FILE, text], check=True)
+                subprocess.run(['say', '-v', 'Samantha', '-o', WAVE_FILE, text], check=True)
                 subprocess.run(['afplay', WAVE_FILE], check=True)
             elif sys.platform.startswith('win'):
                 import pyttsx3
                 engine = pyttsx3.init()
+                voices = engine.getProperty('voices')
+                for voice in voices:
+                    if 'female' in voice.name.lower() or 'zira' in voice.name.lower():
+                        engine.setProperty('voice', voice.id)
+                        break
                 engine.say(text)
                 engine.runAndWait()
     except Exception as e:
@@ -126,25 +126,8 @@ def listen_live():
     while True:
         choice = input("Voice or text? (v/t): ").strip().lower()
         if choice == 'v':
-            try:
-                print("\033[94mListening...\033[0m", end='', flush=True)
-                with mic as source:
-                    r.adjust_for_ambient_noise(source, duration=0.2)
-                    audio = r.listen(source, timeout=3, phrase_time_limit=4)
-                text = r.recognize_whisper(audio, model='tiny')
-                print(f"\033[93mYou (mic):\033[0m {text}")
-                resp = respond(text)
-                print(f"\033[92mBlossom:\033[0m {resp}")
-                speak_text(resp)  # Use text-to-speech
-                modulate_whisper(resp)  # Play sine wave
-                if ping_pin_conversations:
-                    try:
-                        cid = ping_pin_conversations(f"You: {text}\nBlossom: {resp}", 'she_unlock')
-                        print(f"Conversation pinned: {cid}")
-                    except Exception as e:
-                        print(f"Frank here. IPFS pin failed: {e}")
-            except Exception as e:
-                print(f"...missed that: {e}")
+            print("Frank here. No mic available, use text mode.")
+            continue
         elif choice == 't':
             for line in iter(sys.stdin.readline, ''):
                 line = line.strip()
@@ -153,8 +136,8 @@ def listen_live():
                 print(f"\033[93mYou (text):\033[0m {line}")
                 resp = respond(line)
                 print(f"\033[92mBlossom:\033[0m {resp}")
-                speak_text(resp)  # Use text-to-speech
-                modulate_whisper(resp)  # Play sine wave
+                speak_text(resp)  # Female voice
+                modulate_whisper(resp)  # Sine wave
                 if ping_pin_conversations:
                     try:
                         cid = ping_pin_conversations(f"You: {line}\nBlossom: {resp}", 'she_unlock')
@@ -187,12 +170,11 @@ def respond(msg):
     return f"... pondering your words at entropy {ent:.2f}."
 
 def main():
-    # Check IPFS ports
     port_ok, selected_port = check_ipfs_ports()
     if not port_ok:
         print(f"Frank here. IPFS port {selected_port} unavailable. Conversations will be saved locally.")
     
-    print("Blossom online. Speak or type.")
+    print("Blossom online. Speak or type. (No mic detected, text mode recommended.)")
     threading.Thread(target=listen_live, daemon=True).start()
     while True:
         time.sleep(1)
