@@ -40,7 +40,7 @@ import requests  # pip install requests
 import sympy as sp
 from ribit import ribit_generate  # For RIBIT mapping
 from ghost_hand import GhostHand  # For replacing Pong
-from ping_pin import ping_pin  # For IPFS cork
+from ping_pin import ping_pin, ping_pin_vintage, ping_pin_conversations  # For IPFS cork
 from secure_hash_two import secure_hash_two  # For salt verbism
 from friction_vibe import TetraVibe  # For warp train updates
 from kappawise import kappa_coord  # For height theta
