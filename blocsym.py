@@ -38,6 +38,9 @@ import numpy as np
 import subprocess
 import requests  # pip install requests
 import sympy as sp
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from io import BytesIO
 from ribit import ribit_generate  # For RIBIT mapping
 from ghost_hand import GhostHand  # For replacing Pong
 from ping_pin import ping_pin, ping_pin_vintage, ping_pin_conversations  # For IPFS cork
@@ -336,6 +339,8 @@ last_height = 0
 last_time = 0
 last_diff = 0.0
 vibe_model = TetraVibe()
+last_commit = 0.0  # Global last commit time
+conversations_doc = "conversations_content"  # Stub doc
 if Flask is not None:
     app = Flask(__name__)
     socketio = SocketIO(app)
@@ -378,7 +383,14 @@ def check_afk(delta):
     return idle_time
 
 def persist_to_ipfs():
+    global last_commit
     print("IPFS persistence stub: Dumping memory...")
+    if time.time() - last_commit > 3 * 86400:
+        root_cid = ping_pin_vintage()
+        print(f"Vintage dir committed: {root_cid}")
+        conv_cid = ping_pin_conversations(conversations_doc, 'she_unlock')
+        print(f"Conversations committed: {conv_cid}")
+        last_commit = time.time()
 
 # Real Bitcoin poll
 def get_latest_block():
