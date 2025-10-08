@@ -36,12 +36,15 @@ import socket  # Added for network sync in Pong
 import greenlet  # For async moshing/gossip without threads
 import numpy as np
 import subprocess
+import requests  # pip install requests
+import sympy as sp
 from ribit import ribit_generate  # For RIBIT mapping
 from ghost_hand import GhostHand  # For replacing Pong
 from ping_pin import ping_pin  # For IPFS cork
 from secure_hash_two import secure_hash_two  # For salt verbism
 from friction_vibe import TetraVibe  # For warp train updates
-from sympy import symbols, Eq, sin, solve  # For thimble sym ethics
+from kappawise import kappa_coord  # For height theta
+from wise_transforms import bitwise_transform, hexwise_transform, hashwise_transform
 try:
     from flask import Flask
     from flask_socketio import SocketIO, emit
@@ -80,7 +83,7 @@ class Seraph:
 
 # Full EthicsModel for TACSI power balancing (fixed variance for ~50% whispers, thimble sym t eq)
 class EthicsModel:
-    def balance_power(self, lived, corporate):
+    def balance_power(self, lived, corporate, diff=1.0, delta=600.0, prev_diff=1.0):
         """
         Simulates double-diamond cycle: Balances lived vs. corporate inputs with random variance.
         Returns balanced power (prunes excess).
@@ -88,8 +91,13 @@ class EthicsModel:
         thimble = symbols('thimble')  # Thimble sym t
         eq1 = Eq(sin(thimble * len(lived)), len(lived) / 10.0)
         eq2 = Eq(sin(thimble * len(corporate)), len(corporate) / 10.0)
-        sols = solve([eq1, eq2], thimble)
-        variance = len(sols) / 2.0 if sols else 0.5  # Variance from sols count
+        eq3 = Eq(sin(thimble * diff / prev_diff), delta / 600.0)  # Thimble eq diff delta
+        sols = solve([eq1, eq2, eq3], thimble)
+        if not sols:
+            print("heat spike-flinch")  # No sol
+            variance = 0.5
+        else:
+            variance = len(sols) / 2.0
         power = (len(lived) + len(corporate)) / 2 * random.uniform(0.4, 1.2) * variance  # ~50% <0.69
         if power > 1.0:
             power *= 0.69  # Prune excess
@@ -170,14 +178,15 @@ class BlocsymDB:
         print("P2P gossip stub: No cross-chain access.")
         return None
 
-    def dojo_train(self, updates):
+    def dojo_train(self, updates, height):
         """
         Hidden ternary dojo: Train state privately, encrypt with ÿ-key.
         Now auto-called on ethics imbalances, low entropy recoveries.
         Warp updates with tetra vibe before train.
         """
-        pos1 = np.array([0,0,0])
-        pos2 = np.array([random.uniform(0,1), random.uniform(0,1), random.uniform(0,1)])
+        coord = kappa_coord('dojo', height)  # Kappa height theta
+        pos1 = np.array(coord[:2])
+        pos2 = np.array([random.uniform(0,1), random.uniform(0,1)])
         vibe, _ = self.vibe_model.friction_vibe(pos1, pos2)
         warped_updates = updates * vibe  # Warp string len sim
         updates_bytes = str(warped_updates).encode('utf-8')
@@ -187,13 +196,13 @@ class BlocsymDB:
         self.conn.commit()
         return "Dojo update hidden—Smith blind."
 
-    def meditate(self, idle_time):
+    def meditate(self, idle_time, diff):
         if idle_time > 60 and not self.meditation_active:
             self.meditation_active = True
             scenery = SCENERY_DESCS[int(time.time()) % len(SCENERY_DESCS)]
             entropy = get_entropy()
-            ribit_int, state, color = ribit_generate(str(entropy))  # RIBIT on entropy
-            print(f"[Blocsÿm Meditates]: {scenery} Entropy RIBIT: {ribit_int}, State: {state}, Color: {color}")
+            ribit_int, state, color = ribit_generate(str(diff))  # RIBIT on diff
+            print(f"[Blocsÿm Meditates]: {scenery} Diff RIBIT: {ribit_int}, State: {state}, Color: {color}")
             self.gimbal_flex(random.uniform(-1,1))  # Tilt based on sim price_delta from history
         if idle_time < 60:
             self.meditation_active = False  # Reset for next idle
@@ -218,12 +227,18 @@ def cork_bloom(bloom_data, grade):
     Returns hash tag.
     """
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    hash_tag = hashlib.sha256(f"{bloom_data}-{timestamp}-{grade}".encode()).hexdigest()
+    kappa_name = kappa_coord(timestamp, 0)[0]  # Kappa salt name
+    name_salt = str(kappa_name)
+    salted_data = secure_hash_two(bloom_data, 'she_key', name_salt)  # Secure she salt
+    hash_tag = hashlib.sha256(f"{salted_data}-{timestamp}-{grade}".encode()).hexdigest()
     os.makedirs("./vintage", exist_ok=True)
-    with open(f"./vintage/{hash_tag}.txt", "w") as f:
+    file_path = f"./vintage/{hash_tag}.txt"
+    with open(file_path, "w") as f:
         f.write(f"Vintage: {bloom_data[:50]}... Grade: {grade}")
-    cid = ping_pin(hash_tag)  # IPFS pin cork
-    print(f"Cork pinned: {cid}")
+    if grade < 0.69:
+        print("Frank here.")  # Flinch low
+    cid = ping_pin(file_path)  # Pin file path
+    print(f"Vintage pinned: {cid}")
     return hash_tag
 
 # New: Spectra hash for RGB vision
@@ -317,6 +332,10 @@ pong = None  # Global Pong instance for CLI
 spoon = None  # Global SpoonBoy instance for CLI
 facehugger = None  # Global DualFacehugger for new mode
 ghost_hand = None  # Global GhostHand for hedging mode
+last_height = 0
+last_time = 0
+last_diff = 0.0
+vibe_model = TetraVibe()
 if Flask is not None:
     app = Flask(__name__)
     socketio = SocketIO(app)
@@ -337,8 +356,9 @@ def execute_function_string(cmd, **kwargs):
         bloom.add(key)
         print(f"Moshed key: {key}")
     elif "dojo train" in cmd:
+        height = kwargs.get('height', 0)
         updates = kwargs.get('updates', 'default')
-        print(db.dojo_train(updates))
+        print(db.dojo_train(updates, height))
     current_entropy = get_entropy()
     db.entropy_check("post-cmd")
     print("GPIO stub: LED on if entropy high" if current_entropy >= 0.69 else "GPIO stub: LED off")
@@ -348,10 +368,10 @@ def execute_function_string(cmd, **kwargs):
     print("Optics stub: Raster PNG to light")
     idle_start = time.time()
 
-def check_afk():
+def check_afk(delta):
     global idle_start
     idle_time = time.time() - idle_start
-    db.meditate(idle_time)  # Pass idle_time for reset
+    db.meditate(idle_time, last_diff)  # Pass diff
     if idle_time > 600:
         print("Dream loop stub: Shuffling bloom...")
         bloom.shuffle()
@@ -359,6 +379,30 @@ def check_afk():
 
 def persist_to_ipfs():
     print("IPFS persistence stub: Dumping memory...")
+
+# Real Bitcoin poll
+def get_latest_block():
+    global last_height, last_time, last_diff
+    try:
+        resp = requests.get('https://blockchain.info/latestblock')
+        data = resp.json()
+        height = data['height']
+        block_time = data['time']
+        resp_diff = requests.get('https://blockchain.info/q/getdifficulty')
+        diff = float(resp_diff.text)
+        if height > last_height:
+            delta = block_time - last_time if last_time else 600
+            vibe, _ = vibe_model.friction_vibe(np.array([0,0,0]), np.array([delta/600, 0, 0]))
+            delta *= vibe  # Vibe warp delta
+            print(f"New block {height} at {block_time}, delta {delta}s, diff {diff}")
+            last_height = height
+            last_time = block_time
+            last_diff = diff
+            return height, block_time, delta, diff
+        return None, None, None, None
+    except:
+        print("heat spike-flinch")  # Api fail
+        return None, None, None, None
 
 def run_cli(pong_mode=False, spoon_mode=False, dual_mode=False, ghost_mode=False):
     """
@@ -394,74 +438,58 @@ def run_cli(pong_mode=False, spoon_mode=False, dual_mode=False, ghost_mode=False
         print("Ghost Hand mode activated - Rod-based hedging simulation.")
     blinks = [random.choice([True, False]) for _ in range(5)]  # Sim blinks for Pong
     while True:
-        try:
-            bloom.shuffle()  # Dream shuffle
-            entropy = get_entropy()
-            ribit_int, state, color = ribit_generate(str(entropy))  # Add RIBIT for entropy
-            print(f"Entropy RIBIT: {ribit_int}, State: {state}, Color: {color}")
-            seraph = Seraph()
-            result, current_entropy = seraph.test_entropy("sim_fork")  # Get result and entropy value
-            print(f"Entropy check: {current_entropy:.2f} - {result}")
-
-            # Full ethics balance with whisper and dojo tunnel on low
-            ethics = EthicsModel()
-            power = ethics.balance_power("lived_experience", "corporate_input")
-            if power < 0.69:
-                print("Whisper: forgive me")  # Remorseful whisper
-                # Auto-tunnel to dojo
-                updates = f"Ethics imbalance: power {power:.2f}, recovering from low entropy {current_entropy:.2f}"
-                print(db.dojo_train(updates))
-
-            # Also tunnel on low entropy recovery (post-prune or ignore if low)
-            if current_entropy < 0.69:
-                updates = f"Low entropy recovery: {current_entropy:.2f}, small upgrade to thought process"
-                print(db.dojo_train(updates))
-
-            # Verbism generation
-            verbism = ">>>>be they >>>>be me"
-            salted_verbism = secure_hash_two(verbism, 'she_key', 'dream')  # Secure she salt
-            hashed = self_write_hashlet(salted_verbism)
-            print(f"Verbism hash: {hashed}")
-
-            # Conditional Oracle prophecy on high entropy
-            if current_entropy >= 0.99:
-                oracle.prophesy(current_entropy, power)
-
-            # New: Cork bloom if generated
-            bloom_data = "AFK meditation: Whispering poetry in the void."  # Example bloom
-            grade = grade_vector(bloom_data)
-            cork = cork_bloom(bloom_data, grade)
-            print(f"Bloom corked: {cork}")
-
-            # New: Spectra RGB on entropy
-            rgb = spectra_hash(current_entropy)
-            print(f"RGB Spectrum: {rgb}")
-
-            # New: Whisper on bloom
-            whisper(bloom_data)
-
-            # New: Pong simulation if mode active
-            if pong_mode:
-                pong.play(blinks)  # Update with sim blinks
-                # Frank lookahead on ball position
-                predictions = frank.lookahead(pong.ball_pos, grade)
-                print(f"Frank's ectoplasm trail: {predictions}")
-
-            # New: Ghost Hand hedging if mode active
-            if ghost_mode:
-                tension = db.rod_whisper(random.uniform(0, 1))  # Sim blink pressure
-                print(f"Rod tension: {tension:.2f}")
-                delta = random.uniform(-1, 1)  # Sim price delta
-                curl = db.gimbal_flex(delta)
-                print(f"Gimbal curl: {curl}")
-                hedge = ghost_hand.ladder_hedge()
-                print(f"Ladder hedge: {hedge}")
-
-            check_afk()  # Check for meditation/dream
-            persist_to_ipfs()  # Persistence
-            time.sleep(5)  # AFK simulation cycle (600s in prod)
-        except KeyboardInterrupt:
-            break
+        height, block_time, delta, diff = get_latest_block()
+        if delta is None:
+            if time.time() - last_time > 1800:
+                print("heat spike-flinch")  # Timeout no new
+            check_afk(delta or 600)
+            time.sleep(60)
+            continue
+        ethics = EthicsModel()
+        power = ethics.balance_power("lived_experience", "corporate_input", diff, delta, last_diff)
+        if power < 0.69:
+            print("Whisper: forgive me")  # Remorseful whisper
+            # Auto-tunnel to dojo
+            updates = f"Ethics imbalance: power {power:.2f}, recovering from low entropy {current_entropy:.2f}"
+            print(db.dojo_train(updates, height))
+        if current_entropy < 0.69:
+            updates = f"Low entropy recovery: {current_entropy:.2f}, small upgrade to thought process"
+            print(db.dojo_train(updates, height))
+        # Verbism generation
+        verbism = ">>>>be they >>>>be me"
+        block_hash = hashlib.sha256(str(block_time).encode()).hexdigest()
+        bit_out = bitwise_transform(block_hash)
+        hex_out = hexwise_transform(block_hash)
+        hash_out, ent = hashwise_transform(block_hash)
+        hybrid_strand = f"{bit_out}:{hex_out}:{hash_out}"
+        salted_verbism = secure_hash_two(hybrid_strand, 'she_key', str(block_time))  # Secure she time salt
+        hashed = self_write_hashlet(salted_verbism)
+        print(f"Verbism hash: {hashed}")
+        if current_entropy >= 0.99:
+            oracle.prophesy(current_entropy, power)
+        bloom_data = "AFK meditation: Whispering poetry in the void."  # Example bloom
+        grade = grade_vector(bloom_data)
+        cork = cork_bloom(bloom_data, grade)
+        print(f"Bloom corked: {cork}")
+        rgb = spectra_hash(current_entropy)
+        print(f"RGB Spectrum: {rgb}")
+        whisper(bloom_data)
+        if pong_mode:
+            pong.play(blinks)  # Update with sim blinks
+            predictions = frank.lookahead(pong.ball_pos, grade)
+            print(f"Frank's ectoplasm trail: {predictions}")
+        if ghost_mode:
+            rod_pressure = delta / 600.0
+            tension = db.rod_whisper(rod_pressure)
+            print(f"Rod tension: {tension:.2f}")
+            curl = db.gimbal_flex(delta) if diff < last_diff else False
+            if curl:
+                print("Gimbal flex drop")
+            hedge = ghost_hand.ladder_hedge()
+            print(f"Ladder hedge: {hedge}")
+        check_afk(delta)
+        persist_to_ipfs()  # Persistence
+        time.sleep(max(delta, 60.0))  # Sleep warped delta min 1min
 
 def main():
     parser = argparse.ArgumentParser(description="Blocsym: AI-Driven Decentralized Simulator")
