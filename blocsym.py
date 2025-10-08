@@ -386,7 +386,7 @@ def persist_to_ipfs():
     global last_commit
     print("IPFS persistence stub: Dumping memory...")
     if time.time() - last_commit > 3 * 86400:
-        root_cid = ping_pin_vintage()
+        root_cid = ping_pin_vintage('./vintage', 'she_key')
         print(f"Vintage dir committed: {root_cid}")
         conv_cid = ping_pin_conversations(conversations_doc, 'she_unlock')
         print(f"Conversations committed: {conv_cid}")
