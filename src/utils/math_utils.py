@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import hashlib
-from src.config import *
+from kappasha.greenlet.hashlet.src.config import *
 from typing import Dict
 
 def get_grid_label(index: int) -> str:
