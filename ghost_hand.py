@@ -8,16 +8,16 @@
 
 import numpy as np
 import random
-from thought_curve import ThoughtCurve  # For spiral_tangent
+from KappashaOS.thought_curve import ThoughtCurve  # For spiral_tangent
 # Non-visual gimbal core: surface generation/export for Kappa grid scanning/knowing (without viz/sliders/plotting)
 import struct
 from scipy.spatial import Voronoi, Delaunay  # From gimbal
-from tetras import fractal_tetra  # Assume
-from nurks_surface import generate_nurks_surface, u_num, v_num  # Assume
-from tessellations import tessellate_hex_mesh, build_mail  # Assume
-from friction_vibe import TetraVibe  # Integrate tetra
-from ribit_telemetry import ribit_generate  # For RIBIT
-from secure_hash_two import secure_hash_two  # For salt filename
+from tetra.tetras import fractal_tetra  # Assume
+from tetra.nurks_surface import generate_nurks_surface, u_num, v_num  # Assume
+from tetra.tessellations import tessellate_hex_mesh, build_mail  # Assume
+from tetra.friction_vibe import TetraVibe  # Integrate tetra
+from KappashaOS.ribit import ribit_generate  # For RIBIT
+from KappashaOS.src.hash.secure_hash_two import secure_hash_two  # For salt filename
 
 class GhostHand:
     def __init__(self, kappa_grid=16):
