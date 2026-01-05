@@ -11,7 +11,7 @@ import numpy as np  # For ternary grid
 
 # Constants
 TERNARY_STATES = [-1, 0, 1]  # - discover/define, 0 crossover, + develop/deliver
-GRID_SIZE = 2141
+GRID_SIZE = 64
 ENTROPY_THRESHOLD = 0.69
 SCENERY_DESCS = [  # Extended for variety
     "Chrysanthemum fractals bloom in dojo, elephant recalls Keely cones.",
